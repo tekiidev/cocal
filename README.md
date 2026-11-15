@@ -14,7 +14,9 @@ Todos os direitos reservados.
 
 ## Estrutura
 
-- `main.py`: o jogo
+- `main.py`: o loop do jogo, o jogador, a caninana e o mapa
+- `config.py`: as constantes (velocidades, cores, tempos, volumes)
+- `telas.py`: o desenho das telas (menu, laço, susto, game over e vitória)
 - `sprites/`: imagens dos personagens
 - `sons/`: efeitos sonoros
 - `musica/`: trilha e sons de ambiente

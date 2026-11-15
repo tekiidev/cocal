@@ -2,131 +2,10 @@ import os
 import math
 import random
 import pygame
+from config import *
+import telas
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-LARGURA = 800
-ALTURA = 600
-TELA_CHEIA = True
-FPS = 60
-COR_FUNDO = (0, 0, 0)
-
-ACELERACAO = 0.8
-ATRITO = 0.92
-VELOCIDADE_MAX = 5
-VELOCIDADE_DEVAGAR = 1.5
-
-QUADROS_POR_PASSO = 10
-VEL_MIN_ANIMACAO = 0.5
-
-BAIXO = 0
-CIMA = 1
-ESQUERDA = 2
-DIREITA = 3
-
-TAMANHO_BLOCO = 40
-TAMANHO_JOGADOR = 32
-LINHA_INICIAL = 1
-COLUNA_INICIAL = 1
-
-COR_MATO = (12, 40, 18)
-COR_TRILHA = (90, 70, 45)
-COR_ARMADILHA = (120, 30, 30)
-COR_SAIDA = (200, 180, 90)
-
-RAIO_LUZ = 70
-ESCURIDAO = 255
-COR_SOMBRA = (0, 0, 0)
-COR_BURACO = (255, 0, 255)
-
-RECARGA_PULSO = 25
-DURACAO_PULSO = 1.5
-
-BARRA_X = 20
-BARRA_Y = 570
-BARRA_LARGURA = 150
-BARRA_ALTURA = 10
-COR_BARRA_FUNDO = (40, 40, 40)
-COR_BARRA = (110, 110, 160)
-COR_BARRA_PRONTA = (220, 210, 150)
-
-VOLUME_AMBIENTE = 0.4
-VOLUME_PASSO = 0.3
-VOLUME_PULSO = 0.8
-VOLUME_RECARGA = 0.5
-VOLUME_CHIADO = 0.6
-VOLUME_BOTE = 0.8
-VOLUME_SUSTO = 1.0
-
-ESCONDIDA = 0
-ATENTA = 1
-BOTE = 2
-RECUA = 3
-
-CANINANA_LINHA = 12
-CANINANA_COLUNA = 15
-DIST_ATENTA = 160
-DIST_BOTE = 90
-VELOCIDADE_SEGURA = 2
-TEMPO_AVISO = 0.6
-VELOCIDADE_BOTE = 12
-ALCANCE_BOTE = 110
-DIST_MORDIDA = 22
-TREMOR_ATENTA = 2
-
-RAIO_MIN = 30
-DIST_MEDO = 200
-SUAVIZACAO = 0.1
-
-JOGANDO = 0
-SUSTO = 1
-GAME_OVER = 2
-MENU = 3
-PRESO = 4
-VITORIA = 5
-
-TEMPO_AMANHECER = 4
-COR_AMANHECER = (90, 60, 50)
-VOLUME_VITORIA = 0.8
-
-FORCA_PARA_SOLTAR = 12
-TEMPO_ARMADILHA = 6
-MISSAO_Y = 360
-MISSAO_LARGURA = 300
-MISSAO_ALTURA = 16
-ESPACO_BARRAS = 30
-COR_FORCA = (206, 154, 92)
-COR_TEMPO = (150, 50, 40)
-VOLUME_ARMADILHA = 0.9
-
-DURACAO_SUSTO = 1.5
-DURACAO_FLASH = 0.05
-ZOOM_INICIAL = 6
-ZOOM_FINAL = 14
-TREMOR_SUSTO = 15
-COR_FLASH = (255, 255, 255)
-COR_TEXTO = (200, 190, 160)
-TAMANHO_TEXTO = 48
-TAMANHO_TEXTO_PEQUENO = 28
-ESPACO_LINHAS = 60
-
-OPCOES_MENU = ["JOGAR", "SAIR"]
-OPCAO_JOGAR = 0
-OPCAO_SAIR = 1
-TOTAL_QUADROS_LOGO = 24
-MS_POR_QUADRO_LOGO = 110
-LOGO_Y = 60
-TEMPO_FADE_LOGO = 2.5
-TEMPO_OPCOES = 3.0
-OPCAO_Y = 420
-ESPACO_OPCOES = 70
-LARGURA_OPCAO = 260
-ALTURA_OPCAO = 50
-COR_OPCAO = (120, 150, 96)
-COR_OPCAO_SELECIONADA = (206, 154, 92)
-VOLUME_INTRO = 0.8
-VOLUME_NAVEGAR = 0.5
-VOLUME_CONFIRMAR = 0.9
 
 mapa = [
     "####################",
@@ -195,112 +74,45 @@ def carregar_som(arquivo, volume):
     return som
 
 
-def desenhar_barra(carga):
-    pygame.draw.rect(tela, COR_BARRA_FUNDO, (BARRA_X, BARRA_Y, BARRA_LARGURA, BARRA_ALTURA))
-    if carga >= 1:
-        cor = COR_BARRA_PRONTA
-    else:
-        cor = COR_BARRA
-    pygame.draw.rect(tela, cor, (BARRA_X, BARRA_Y, int(BARRA_LARGURA * carga), BARRA_ALTURA))
 
 
 def distancia(ax, ay, bx, by):
     return ((ax - bx) ** 2 + (ay - by) ** 2) ** 0.5
 
 
-def desenhar_centro(imagem, cx, cy):
-    tela.blit(imagem, (int(cx) - imagem.get_width() // 2, int(cy) - imagem.get_height() // 2))
 
 
 def desenhar_caninana():
     if estado_caninana == ESCONDIDA:
         if tempo_pulso < DURACAO_PULSO:
-            desenhar_centro(img_enrolada, casa_x, casa_y)
+            telas.desenhar_centro(tela, img_enrolada, casa_x, casa_y)
     elif estado_caninana == ATENTA:
         tremor_x = random.randint(-TREMOR_ATENTA, TREMOR_ATENTA)
         tremor_y = random.randint(-TREMOR_ATENTA, TREMOR_ATENTA)
-        desenhar_centro(img_enrolada, casa_x + tremor_x, casa_y + tremor_y)
+        telas.desenhar_centro(tela, img_enrolada, casa_x + tremor_x, casa_y + tremor_y)
     else:
         for i in range(len(corpo) - 1, -1, -1):
             if i % 2 == 0:
                 segmento = img_corpo_amarelo
             else:
                 segmento = img_corpo_preto
-            desenhar_centro(segmento, corpo[i][0], corpo[i][1])
+            telas.desenhar_centro(tela, segmento, corpo[i][0], corpo[i][1])
         cabeca = pygame.transform.rotate(img_cabeca, angulo)
-        desenhar_centro(cabeca, cabeca_x, cabeca_y)
+        telas.desenhar_centro(tela, cabeca, cabeca_x, cabeca_y)
 
 
-def desenhar_susto(tempo):
-    if tempo < DURACAO_FLASH:
-        tela.fill(COR_FLASH)
-        return
-    tela.fill(COR_FUNDO)
-    zoom = ZOOM_INICIAL + (ZOOM_FINAL - ZOOM_INICIAL) * tempo / DURACAO_SUSTO
-    imagem = pygame.transform.scale_by(img_cabeca, zoom)
-    tremor_x = random.randint(-TREMOR_SUSTO, TREMOR_SUSTO)
-    tremor_y = random.randint(-TREMOR_SUSTO, TREMOR_SUSTO)
-    desenhar_centro(imagem, LARGURA // 2 + tremor_x, ALTURA // 2 + tremor_y)
 
 
-def desenhar_game_over():
-    tela.fill(COR_FUNDO)
-    texto = fonte.render(mensagem_fim, True, COR_TEXTO)
-    dica = fonte_pequena.render("ENTER para tentar de novo, ESC para o menu", True, COR_TEXTO)
-    desenhar_centro(texto, LARGURA // 2, ALTURA // 2)
-    desenhar_centro(dica, LARGURA // 2, ALTURA // 2 + ESPACO_LINHAS)
 
 
-def desenhar_vitoria(tempo):
-    claridade = min(tempo / TEMPO_AMANHECER, 1)
-    cor = (int(COR_AMANHECER[0] * claridade), int(COR_AMANHECER[1] * claridade), int(COR_AMANHECER[2] * claridade))
-    tela.fill(cor)
-    texto = fonte.render("Você atravessou o Cocal.", True, COR_TEXTO)
-    marca = fonte_pequena.render("Tempo: " + str(tempo_travessia) + " segundos", True, COR_TEXTO)
-    dica = fonte_pequena.render("ENTER para jogar de novo, ESC para o menu", True, COR_TEXTO)
-    desenhar_centro(texto, LARGURA // 2, ALTURA // 2 - ESPACO_LINHAS)
-    desenhar_centro(marca, LARGURA // 2, ALTURA // 2)
-    desenhar_centro(dica, LARGURA // 2, ALTURA // 2 + ESPACO_LINHAS)
 
 
-def desenhar_barra_missao(barra_y, proporcao, cor):
-    barra_x = LARGURA // 2 - MISSAO_LARGURA // 2
-    pygame.draw.rect(tela, COR_BARRA_FUNDO, (barra_x, barra_y, MISSAO_LARGURA, MISSAO_ALTURA))
-    pygame.draw.rect(tela, cor, (barra_x, barra_y, int(MISSAO_LARGURA * proporcao), MISSAO_ALTURA))
 
 
-def desenhar_preso(tempo):
-    tela.fill(COR_FUNDO)
-    titulo = fonte.render("Você pisou num laço!", True, COR_TEXTO)
-    dica = fonte_pequena.render("Alterne ESQUERDA e DIREITA para soltar o pé", True, COR_TEXTO)
-    desenhar_centro(titulo, LARGURA // 2, ALTURA // 2 - ESPACO_LINHAS)
-    desenhar_centro(dica, LARGURA // 2, ALTURA // 2)
-    desenhar_barra_missao(MISSAO_Y, min(forca / FORCA_PARA_SOLTAR, 1), COR_FORCA)
-    desenhar_barra_missao(MISSAO_Y + ESPACO_BARRAS, max(1 - tempo / TEMPO_ARMADILHA, 0), COR_TEMPO)
 
 
-def opcao_sob_mouse(posicao):
-    for i in range(len(retangulos_opcoes)):
-        if retangulos_opcoes[i].collidepoint(posicao):
-            return i
-    return -1
 
 
-def desenhar_menu(tempo):
-    tela.fill(COR_FUNDO)
-    indice = int(tempo * 1000 / MS_POR_QUADRO_LOGO) % TOTAL_QUADROS_LOGO
-    logo = quadros_logo[indice]
-    logo.set_alpha(min(255, int(255 * tempo / TEMPO_FADE_LOGO)))
-    tela.blit(logo, (0, LOGO_Y))
-    if tempo >= TEMPO_OPCOES:
-        for i in range(len(OPCOES_MENU)):
-            texto = OPCOES_MENU[i]
-            cor = COR_OPCAO
-            if i == opcao:
-                texto = "> " + texto + " <"
-                cor = COR_OPCAO_SELECIONADA
-            imagem = fonte.render(texto, True, cor)
-            desenhar_centro(imagem, retangulos_opcoes[i].centerx, retangulos_opcoes[i].centery)
 
 
 def abrir_menu():
@@ -359,8 +171,7 @@ else:
     tela = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("Cocal")
 relogio = pygame.time.Clock()
-fonte = pygame.font.Font(None, TAMANHO_TEXTO)
-fonte_pequena = pygame.font.Font(None, TAMANHO_TEXTO_PEQUENO)
+telas.carregar_fontes()
 
 imagens_jogador = [
     carregar_jogador("baixo"),
@@ -377,9 +188,7 @@ quadros_logo = []
 for i in range(TOTAL_QUADROS_LOGO):
     quadros_logo.append(pygame.image.load("sprites/logo/logo_" + str(i).zfill(2) + ".png").convert_alpha())
 
-retangulos_opcoes = []
-for i in range(len(OPCOES_MENU)):
-    retangulos_opcoes.append(pygame.Rect(LARGURA // 2 - LARGURA_OPCAO // 2, OPCAO_Y + i * ESPACO_OPCOES, LARGURA_OPCAO, ALTURA_OPCAO))
+retangulos_opcoes = telas.criar_retangulos_opcoes()
 
 casa_x = CANINANA_COLUNA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
 casa_y = CANINANA_LINHA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
@@ -436,12 +245,12 @@ while rodando:
                 elif evento.key == pygame.K_RETURN or evento.key == pygame.K_SPACE:
                     escolheu = True
             elif evento.type == pygame.MOUSEMOTION and tempo_menu >= TEMPO_OPCOES:
-                sob_mouse = opcao_sob_mouse(evento.pos)
+                sob_mouse = telas.opcao_sob_mouse(evento.pos, retangulos_opcoes)
                 if sob_mouse != -1 and sob_mouse != opcao:
                     opcao = sob_mouse
                     som_navegar.play()
             elif evento.type == pygame.MOUSEBUTTONDOWN and tempo_menu >= TEMPO_OPCOES:
-                sob_mouse = opcao_sob_mouse(evento.pos)
+                sob_mouse = telas.opcao_sob_mouse(evento.pos, retangulos_opcoes)
                 if sob_mouse != -1:
                     opcao = sob_mouse
                     escolheu = True
@@ -476,13 +285,13 @@ while rodando:
 
     if estado_jogo != JOGANDO:
         if estado_jogo == MENU:
-            desenhar_menu(agora - inicio_menu)
+            telas.desenhar_menu(tela, agora - inicio_menu, quadros_logo, opcao, retangulos_opcoes)
         elif estado_jogo == SUSTO:
-            desenhar_susto(agora - inicio_susto)
+            telas.desenhar_susto(tela, agora - inicio_susto, img_cabeca)
             if agora - inicio_susto > DURACAO_SUSTO:
                 estado_jogo = GAME_OVER
         elif estado_jogo == PRESO:
-            desenhar_preso(agora - inicio_preso)
+            telas.desenhar_preso(tela, agora - inicio_preso, forca)
             if forca >= FORCA_PARA_SOLTAR:
                 estado_jogo = JOGANDO
             elif agora - inicio_preso > TEMPO_ARMADILHA:
@@ -490,9 +299,9 @@ while rodando:
                 estado_jogo = GAME_OVER
                 pygame.mixer.stop()
         elif estado_jogo == VITORIA:
-            desenhar_vitoria(agora - inicio_vitoria)
+            telas.desenhar_vitoria(tela, agora - inicio_vitoria, tempo_travessia)
         else:
-            desenhar_game_over()
+            telas.desenhar_game_over(tela, mensagem_fim)
         pygame.display.flip()
         relogio.tick(FPS)
         continue
@@ -633,7 +442,7 @@ while rodando:
 
     if atacando:
         desenhar_caninana()
-    desenhar_barra(carga)
+    telas.desenhar_barra(tela, carga)
     pygame.display.flip()
     relogio.tick(FPS)
 

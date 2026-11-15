@@ -18,6 +18,7 @@ Entrega: 1 de dezembro de 2026.
 - Etapa 4.1 pronta: laço de caçador no `T` com mini-missão (alternar ESQUERDA e DIREITA).
 - Etapa 4.2 pronta: chegar no `S` dá vitória, com amanhecer, som de vitória e o tempo da travessia.
 - Marco da Fase 4 quase atingido: já dá para jogar uma fase completa do menu até a vitória ou a derrota.
+- Código dividido em 3 arquivos: `main.py` (loop, jogador, caninana, mapa), `config.py` (todas as constantes) e `telas.py` (desenho das telas e da barra).
 - Próxima: Fase 4, etapa 4.3b (galo à meia-noite e presságios básicos).
 
 ## Fases e etapas
@@ -84,6 +85,7 @@ Entrega: 1 de dezembro de 2026.
 - Vitória: novo estado `VITORIA`. Detectada como o laço, pelo bloco do centro do jogador (`elif ... == "S"`). A tela vai do preto até `COR_AMANHECER` em `TEMPO_AMANHECER` segundos, multiplicando cada parte da cor pela `claridade` (0 a 1). Mostra `tempo_travessia` (segundos desde o `inicio_partida`, que é guardado no `reiniciar()`). ENTER joga de novo.
 - Estados do jogo: MENU, JOGANDO, PRESO, SUSTO, GAME_OVER e VITORIA.
 - Som provisório: sons/vitoria.wav (passarinhos, galo e vento).
+- Organização: constantes no `config.py`, importadas com `from config import *` (os nomes continuam iguais). Telas no `telas.py`, chamadas com `telas.nome_da_funcao(...)`. As funções do `telas.py` recebem por parâmetro o que precisam (`tela`, `forca`, `mensagem`...), porque o `global` só funciona dentro do próprio arquivo. As fontes são criadas em `telas.carregar_fontes()`, depois do `pygame.init()`.
 - Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
 - Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
@@ -93,56 +95,56 @@ Entrega: 1 de dezembro de 2026.
 
 | Quero mudar | Constante ou linha | Arquivo |
 | --- | --- | --- |
-| Tamanho da janela | `LARGURA` e `ALTURA` | main.py |
-| Velocidade do jogo | `FPS` | main.py |
-| Cor do fundo | `COR_FUNDO` | main.py |
-| Velocidade máxima do personagem | `VELOCIDADE_MAX` (maior = mais rápido) | main.py |
-| Arranque (quão rápido ganha velocidade) | `ACELERACAO` | main.py |
-| Quanto desliza ao soltar | `ATRITO` (menor = para mais rápido, 1 = nunca para) | main.py |
-| Ritmo da animação de passos | `QUADROS_POR_PASSO` (menor = passos mais rápidos) | main.py |
-| Velocidade mínima para animar | `VEL_MIN_ANIMACAO` | main.py |
+| Tamanho da janela | `LARGURA` e `ALTURA` | config.py |
+| Velocidade do jogo | `FPS` | config.py |
+| Cor do fundo | `COR_FUNDO` | config.py |
+| Velocidade máxima do personagem | `VELOCIDADE_MAX` (maior = mais rápido) | config.py |
+| Arranque (quão rápido ganha velocidade) | `ACELERACAO` | config.py |
+| Quanto desliza ao soltar | `ATRITO` (menor = para mais rápido, 1 = nunca para) | config.py |
+| Ritmo da animação de passos | `QUADROS_POR_PASSO` (menor = passos mais rápidos) | config.py |
+| Velocidade mínima para animar | `VEL_MIN_ANIMACAO` | config.py |
 | Desenho do labirinto | a lista `mapa` (`#` mato, `.` trilha, `T` armadilha, `S` saída) | main.py |
-| Tamanho dos blocos do mapa | `TAMANHO_BLOCO` | main.py |
-| Onde o jogador começa | `LINHA_INICIAL` e `COLUNA_INICIAL` | main.py |
-| Cores do mapa | `COR_MATO`, `COR_TRILHA`, `COR_ARMADILHA`, `COR_SAIDA` | main.py |
-| Tamanho da caixa de colisão | `TAMANHO_JOGADOR` | main.py |
-| Tamanho da luz | `RAIO_LUZ` | main.py |
-| Quão escuro fica fora da luz | `ESCURIDAO` (255 = breu, 0 = sem escuro) | main.py |
-| Tempo de recarga do pulso | `RECARGA_PULSO` (segundos) | main.py |
-| Quanto tempo o pulso mostra o mapa | `DURACAO_PULSO` (segundos) | main.py |
+| Tamanho dos blocos do mapa | `TAMANHO_BLOCO` | config.py |
+| Onde o jogador começa | `LINHA_INICIAL` e `COLUNA_INICIAL` | config.py |
+| Cores do mapa | `COR_MATO`, `COR_TRILHA`, `COR_ARMADILHA`, `COR_SAIDA` | config.py |
+| Tamanho da caixa de colisão | `TAMANHO_JOGADOR` | config.py |
+| Tamanho da luz | `RAIO_LUZ` | config.py |
+| Quão escuro fica fora da luz | `ESCURIDAO` (255 = breu, 0 = sem escuro) | config.py |
+| Tempo de recarga do pulso | `RECARGA_PULSO` (segundos) | config.py |
+| Quanto tempo o pulso mostra o mapa | `DURACAO_PULSO` (segundos) | config.py |
 | Tecla do pulso | `pygame.K_SPACE` no `if` do KEYDOWN | main.py |
-| Posição e tamanho da barra | `BARRA_X`, `BARRA_Y`, `BARRA_LARGURA`, `BARRA_ALTURA` | main.py |
-| Cores da barra | `COR_BARRA`, `COR_BARRA_PRONTA`, `COR_BARRA_FUNDO` | main.py |
-| Volumes | `VOLUME_...` (0 a 1) | main.py |
-| Tela cheia ou janela | `TELA_CHEIA` (True ou False) | main.py |
-| Velocidade andando devagar (SHIFT) | `VELOCIDADE_DEVAGAR` | main.py |
-| Onde a caninana fica | `CANINANA_LINHA` e `CANINANA_COLUNA` | main.py |
-| Distância em que ela fica atenta (chiado) | `DIST_ATENTA` | main.py |
-| Distância do bote | `DIST_BOTE` | main.py |
-| Velocidade que não provoca bote | `VELOCIDADE_SEGURA` | main.py |
-| Tempo de aviso antes do bote | `TEMPO_AVISO` | main.py |
-| Velocidade e alcance do bote | `VELOCIDADE_BOTE`, `ALCANCE_BOTE` | main.py |
-| Distância que conta como mordida | `DIST_MORDIDA` | main.py |
-| Luz mínima perto do perigo | `RAIO_MIN` | main.py |
-| Distância em que a luz começa a diminuir | `DIST_MEDO` | main.py |
-| Suavidade da luz | `SUAVIZACAO` (maior = muda mais rápido) | main.py |
-| Duração e zoom do susto | `DURACAO_SUSTO`, `ZOOM_INICIAL`, `ZOOM_FINAL`, `TREMOR_SUSTO` | main.py |
-| Texto do game over | `desenhar_game_over()` | main.py |
-| Velocidade da animação da logo | `MS_POR_QUADRO_LOGO` (menor = mais rápida) | main.py |
-| Tempo da logo aparecendo | `TEMPO_FADE_LOGO` (segundos) | main.py |
-| Quando as opções do menu aparecem | `TEMPO_OPCOES` (segundos) | main.py |
-| Posição da logo e das opções | `LOGO_Y`, `OPCAO_Y`, `ESPACO_OPCOES` | main.py |
-| Textos do menu | `OPCOES_MENU` | main.py |
-| Cores do menu | `COR_OPCAO`, `COR_OPCAO_SELECIONADA` | main.py |
+| Posição e tamanho da barra | `BARRA_X`, `BARRA_Y`, `BARRA_LARGURA`, `BARRA_ALTURA` | config.py |
+| Cores da barra | `COR_BARRA`, `COR_BARRA_PRONTA`, `COR_BARRA_FUNDO` | config.py |
+| Volumes | `VOLUME_...` (0 a 1) | config.py |
+| Tela cheia ou janela | `TELA_CHEIA` (True ou False) | config.py |
+| Velocidade andando devagar (SHIFT) | `VELOCIDADE_DEVAGAR` | config.py |
+| Onde a caninana fica | `CANINANA_LINHA` e `CANINANA_COLUNA` | config.py |
+| Distância em que ela fica atenta (chiado) | `DIST_ATENTA` | config.py |
+| Distância do bote | `DIST_BOTE` | config.py |
+| Velocidade que não provoca bote | `VELOCIDADE_SEGURA` | config.py |
+| Tempo de aviso antes do bote | `TEMPO_AVISO` | config.py |
+| Velocidade e alcance do bote | `VELOCIDADE_BOTE`, `ALCANCE_BOTE` | config.py |
+| Distância que conta como mordida | `DIST_MORDIDA` | config.py |
+| Luz mínima perto do perigo | `RAIO_MIN` | config.py |
+| Distância em que a luz começa a diminuir | `DIST_MEDO` | config.py |
+| Suavidade da luz | `SUAVIZACAO` (maior = muda mais rápido) | config.py |
+| Duração e zoom do susto | `DURACAO_SUSTO`, `ZOOM_INICIAL`, `ZOOM_FINAL`, `TREMOR_SUSTO` | config.py |
+| Texto do game over | `desenhar_game_over()` | telas.py |
+| Velocidade da animação da logo | `MS_POR_QUADRO_LOGO` (menor = mais rápida) | config.py |
+| Tempo da logo aparecendo | `TEMPO_FADE_LOGO` (segundos) | config.py |
+| Quando as opções do menu aparecem | `TEMPO_OPCOES` (segundos) | config.py |
+| Posição da logo e das opções | `LOGO_Y`, `OPCAO_Y`, `ESPACO_OPCOES` | config.py |
+| Textos do menu | `OPCOES_MENU` | config.py |
+| Cores do menu | `COR_OPCAO`, `COR_OPCAO_SELECIONADA` | config.py |
 | Onde fica a saída | letra `S` no `mapa` | main.py |
-| Tempo do amanhecer na vitória | `TEMPO_AMANHECER` (segundos) | main.py |
-| Cor do amanhecer | `COR_AMANHECER` | main.py |
-| Texto da vitória | `desenhar_vitoria()` | main.py |
-| Volume da vitória | `VOLUME_VITORIA` | main.py |
-| Puxadas para soltar do laço | `FORCA_PARA_SOLTAR` | main.py |
-| Tempo para soltar do laço | `TEMPO_ARMADILHA` (segundos) | main.py |
+| Tempo do amanhecer na vitória | `TEMPO_AMANHECER` (segundos) | config.py |
+| Cor do amanhecer | `COR_AMANHECER` | config.py |
+| Texto da vitória | `desenhar_vitoria()` | telas.py |
+| Volume da vitória | `VOLUME_VITORIA` | config.py |
+| Puxadas para soltar do laço | `FORCA_PARA_SOLTAR` | config.py |
+| Tempo para soltar do laço | `TEMPO_ARMADILHA` (segundos) | config.py |
 | Onde ficam as armadilhas | letra `T` no `mapa` | main.py |
-| Barras da mini-missão | `MISSAO_Y`, `MISSAO_LARGURA`, `MISSAO_ALTURA`, `ESPACO_BARRAS`, `COR_FORCA`, `COR_TEMPO` | main.py |
-| Volume da abertura e dos cliques do menu | `VOLUME_INTRO`, `VOLUME_NAVEGAR`, `VOLUME_CONFIRMAR` | main.py |
+| Barras da mini-missão | `MISSAO_Y`, `MISSAO_LARGURA`, `MISSAO_ALTURA`, `ESPACO_BARRAS`, `COR_FORCA`, `COR_TEMPO` | config.py |
+| Volume da abertura e dos cliques do menu | `VOLUME_INTRO`, `VOLUME_NAVEGAR`, `VOLUME_CONFIRMAR` | config.py |
 
 Esta tabela cresce a cada etapa.
