@@ -220,18 +220,18 @@ TEXTO_HISTORIA = [
     "Esse jogo saiu das histórias do povoado",
     "João Rufino, em Trizidela do Vale - MA.",
     "",
-    "Eu era piá e tava mais meu pai no açude, quando",
-    "uma caninana passou por mim.",
+    "Eu era piá e tava mais meu pai no açude,",
+    "quando uma caninana passou por mim.",
     "Eu dei um pulo tão grande que fui parar na bera do açude",
     "",
-    "Na estrada do cemitério, o povo de lá de vez em quando via",
-    "um vulto de uma mulher de branco andando de noite.",
+    "Na estrada do cemitério, o povo de lá de vez em quando",
+    "via um vulto de uma mulher de branco andando de noite.",
     "E se passasse de bicicleta e olhasse pra trás...",
     "a bicicleta pesava sem ninguém na garupa.",
     "No mato era cascavel e caninana pra dar bote",
     "matava os cachorro, as vaca, até quem morava no meio do mato",
     "",
-    "De noite no Cocal do João Rufino, a gente escuta mais do que vê."
+    "De noite no Cocal do João Rufino, a gente escuta mais do que vê.",
     "Ou vê coisa que num existe nessa Terra...",
 ]
 TITULO_AVISO = "Antes de entrar na mata"
@@ -241,8 +241,8 @@ TEXTO_AVISO = [
 ]
 TEXTO_TERCO = [
     "Reza do terço (tecla Z)",
-    "O clarão de Nossa Senhora da Bicicretinha Sem Freio mostra a mata pra não",
-    "encontrar essas coisa do djabo.",
+    "O clarão de Nossa Senhora da Bicicretinha Sem Freio",
+    "mostra a mata pra não encontrar essas coisa do djabo.",
     "Mas só dá pra rezar uma vez por noite...",
 ]
 TEXTO_BOTAO = "CONTINUAR"
