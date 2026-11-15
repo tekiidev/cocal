@@ -4,45 +4,9 @@ import random
 import pygame
 from config import *
 import telas
+import mapas
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-mapa = [
-    "####################",
-    "#....#...A...#CCCCC#",
-    "#.L..#.#####.#CCCCC#",
-    "#..+.#.#...#..CCCCC#",
-    "#.L.L#.#.#.#######.#",
-    "#......#.#.....#...#",
-    "#.######.#####.###.#",
-    "#....A.#.....#.....#",
-    "######.#####.###.#.#",
-    "#....#.#.A.#...#.#.#",
-    "#.##.#.#.#.###.#.#.#",
-    "#.#..T...#...#...#.#",
-    "#.#.######.#.#####.#",
-    "#...#......#......S#",
-    "####################",
-]
-
-decoracao = [
-    "PMM.PPMM.M...MPMP.M.",
-    "M.......RRR..M.....M",
-    "M....M.MM.PM.M.....M",
-    ".....P.M............",
-    "M....M.M...MM..MM...",
-    "P........P.....M....",
-    "P.PM..MM.PM..M.PPM..",
-    "M...RRRM...........M",
-    "MPMP.MRPMMMM.PMP.P..",
-    "M....B.PRRR....B.B.M",
-    "..MB.B.PR.R..M.P.M.B",
-    "P.M......B...B...P.B",
-    "M.B.BBBBB..B.BBBMM.B",
-    "...................B",
-    "MP..P.P.MMM.PMPPMMMP",
-]
-
 
 def limitar(valor, limite):
     if valor > limite:
@@ -70,6 +34,10 @@ def desenhar_mapa(superficie):
                 cor = COR_SAIDA
             elif bloco == "C":
                 cor = COR_LAMA
+            elif bloco == "W":
+                cor = COR_AGUA
+            elif bloco == "H":
+                cor = COR_CONSTRUCAO
             else:
                 cor = COR_TRILHA
             quadrado = (coluna * TAMANHO_BLOCO, linha * TAMANHO_BLOCO, TAMANHO_BLOCO, TAMANHO_BLOCO)
@@ -82,6 +50,9 @@ def desenhar_mapa(superficie):
                 superficie.blit(img_cruz, (centro_x - img_cruz.get_width() // 2, base - img_cruz.get_height()))
             elif bloco == "C":
                 desenhar_curral(superficie, linha, coluna)
+            elif bloco == "W":
+                onda_y = linha * TAMANHO_BLOCO + (coluna * 7) % (TAMANHO_BLOCO - 8) + 4
+                pygame.draw.line(superficie, COR_ONDA, (coluna * TAMANHO_BLOCO + 8, onda_y), (coluna * TAMANHO_BLOCO + 24, onda_y), 2)
 
     for linha in range(len(decoracao)):
         for coluna in range(len(decoracao[linha])):
@@ -94,6 +65,11 @@ def desenhar_mapa(superficie):
                 telas.desenhar_centro(superficie, imgs_mata[variacao], centro_x, centro_y)
             elif item == "B":
                 telas.desenhar_centro(superficie, imgs_bananeira[variacao], centro_x, centro_y)
+            elif item == "E":
+                superficie.blit(img_estrada, (coluna * TAMANHO_BLOCO, linha * TAMANHO_BLOCO))
+
+    for tipo, linha, coluna in construcoes:
+        superficie.blit(imgs_construcoes[tipo], (coluna * TAMANHO_BLOCO, linha * TAMANHO_BLOCO))
 
 
 def desenhar_arroz(agora):
@@ -223,6 +199,55 @@ def agendar_assombro(agora):
         assombro_agendado = agora + random.uniform(ATRASO_MIN, ATRASO_MAX)
 
 
+def carregar_fase(numero):
+    global fase, mapa, decoracao, construcoes, luzes, paredao, cenario
+    global inicio, rota_caninana, rota_mulher, raio_base, recarga, velocidade_caninana, intervalo_min, intervalo_max
+    global tem_cascavel, casa_x, casa_y, tem_bicicleta, origem_x, origem_y, tem_vaca, vaca_casa_x, vaca_casa_y
+    fase = numero
+    mapa = mapas.MAPAS[fase]
+    decoracao = mapas.DECORACOES[fase]
+    construcoes = mapas.CONSTRUCOES[fase]
+    luzes = mapas.LUZES[fase]
+    paredao = mapas.PAREDOES[fase]
+    inicio = mapas.INICIOS[fase]
+    rota_caninana = mapas.ROTAS_CANINANA[fase]
+    rota_mulher = mapas.ROTAS_MULHER[fase]
+    raio_base = RAIOS_LUZ[fase]
+    recarga = RECARGAS_PULSO[fase]
+    velocidade_caninana = VELOCIDADES_CANINANA[fase]
+    intervalo_min = INTERVALOS_MIN[fase]
+    intervalo_max = INTERVALOS_MAX[fase]
+
+    tem_cascavel = len(mapas.CASCAVEIS[fase]) > 0
+    if tem_cascavel:
+        casa_x, casa_y = centro_do_bloco(mapas.CASCAVEIS[fase])
+    else:
+        casa_x = -LONGE
+        casa_y = -LONGE
+    tem_bicicleta = len(mapas.BICICLETAS[fase]) > 0
+    if tem_bicicleta:
+        origem_x, origem_y = centro_do_bloco(mapas.BICICLETAS[fase])
+    tem_vaca = len(mapas.VACAS[fase]) > 0
+    if tem_vaca:
+        vaca_casa_x, vaca_casa_y = centro_do_bloco(mapas.VACAS[fase])
+
+    cenario = pygame.Surface((LARGURA, ALTURA))
+    desenhar_mapa(cenario)
+
+
+def novo_jogo():
+    global terco_usado, inicio_jogo
+    terco_usado = False
+    inicio_jogo = pygame.time.get_ticks() / 1000
+    carregar_fase(0)
+    reiniciar()
+
+
+def passar_de_fase():
+    carregar_fase(fase + 1)
+    reiniciar()
+
+
 def comecar_historia(agora):
     global estado_jogo, inicio_tela
     estado_jogo = HISTORIA
@@ -242,12 +267,14 @@ def avancar_introducao(agora):
             inicio_tela = agora
             som_navegar.play()
     else:
-        reiniciar()
+        novo_jogo()
         som_confirmar.play()
 
 
 def usar_bicicleta(agora):
     global montado, bici_x, bici_y, homem_ativo, estado_jogo, inicio_susto_homem, vel_x, vel_y
+    if not tem_bicicleta:
+        return
     centro_x = x + TAMANHO_JOGADOR // 2
     centro_y = y + TAMANHO_JOGADOR // 2
     if montado:
@@ -297,21 +324,21 @@ def reiniciar():
     global fim_veneno, inicio_mordida
     global mulher_x, mulher_y, ponto_mulher, mulher_ativa
     global bici_x, bici_y, montado, peso, peso_maximo, homem_ativo
-    global terco_usado, inicio_terco
+    global inicio_terco
     global vaca_x, vaca_y, estado_vaca, inicio_vaca, angulo_vaca, proximo_ei
 
     margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
-    x = COLUNA_INICIAL * TAMANHO_BLOCO + margem
-    y = LINHA_INICIAL * TAMANHO_BLOCO + margem
+    x = inicio[1] * TAMANHO_BLOCO + margem
+    y = inicio[0] * TAMANHO_BLOCO + margem
     vel_x = 0
     vel_y = 0
     direcao = BAIXO
     quadro = 0
     contador = 0
 
-    ultimo_pulso = pygame.time.get_ticks() / 1000 - RECARGA_PULSO
+    ultimo_pulso = pygame.time.get_ticks() / 1000 - recarga
     avisou_recarga = True
-    raio_luz = RAIO_LUZ
+    raio_luz = raio_base
     estado_jogo = JOGANDO
 
     estado_cascavel = ESCONDIDA
@@ -323,28 +350,29 @@ def reiniciar():
     fim_veneno = 0
     inicio_mordida = -DURACAO_FLASH_MORDIDA
 
-    caninana_x, caninana_y = centro_do_bloco(ROTA_CANINANA[0])
+    caninana_x, caninana_y = centro_do_bloco(rota_caninana[0])
     estado_caninana = PATRULHA
     ponto_rota = 1
     fim_perseguicao = 0
     rastro = []
     angulo_caninana = 0
 
-    mulher_x, mulher_y = centro_do_bloco(ROTA_MULHER[0])
+    mulher_ativa = len(rota_mulher) > 0
+    if mulher_ativa:
+        mulher_x, mulher_y = centro_do_bloco(rota_mulher[0])
     ponto_mulher = 1
-    mulher_ativa = True
 
-    bici_x = origem_x
-    bici_y = origem_y
+    if tem_bicicleta:
+        bici_x = origem_x
+        bici_y = origem_y
     montado = False
     peso = 0
     peso_maximo = 0
     homem_ativo = True
 
-    terco_usado = False
-
-    vaca_x = vaca_casa_x
-    vaca_y = vaca_casa_y
+    if tem_vaca:
+        vaca_x = vaca_casa_x
+        vaca_y = vaca_casa_y
     estado_vaca = QUIETA
     inicio_vaca = 0
     angulo_vaca = 0
@@ -360,7 +388,7 @@ def reiniciar():
     ultimo_assombro = NENHUM
     assombro_atual = NENHUM
     assombro_agendado = NENHUM
-    proximo_assombro = inicio_partida + random.uniform(INTERVALO_MIN, INTERVALO_MAX)
+    proximo_assombro = inicio_partida + random.uniform(intervalo_min, intervalo_max)
 
     pygame.mixer.stop()
     som_ambiente.play(loops=-1)
@@ -372,6 +400,9 @@ def reiniciar():
     som_lamento.play(loops=-1)
     som_rangido.set_volume(0)
     som_rangido.play(loops=-1)
+    som_paredao.set_volume(0)
+    if len(paredao) > 0:
+        som_paredao.play(loops=-1)
     pygame.mouse.set_visible(False)
 
 
@@ -404,10 +435,6 @@ for i in range(TOTAL_QUADROS_LOGO):
 
 retangulos_opcoes = telas.criar_retangulos_opcoes()
 
-casa_x = CASCAVEL_COLUNA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
-casa_y = CASCAVEL_LINHA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
-origem_x, origem_y = centro_do_bloco([BICICLETA_LINHA, BICICLETA_COLUNA])
-vaca_casa_x, vaca_casa_y = centro_do_bloco([VACA_LINHA, VACA_COLUNA])
 
 sombra = pygame.Surface((LARGURA, ALTURA), pygame.SRCALPHA)
 gradiente = telas.criar_gradiente()
@@ -462,8 +489,17 @@ img_cabana = pygame.transform.scale(pygame.image.load("sprites/cabana.png").conv
 inicio_tela = 0
 inicio_susto_homem = 0
 
-cenario = pygame.Surface((LARGURA, ALTURA))
-desenhar_mapa(cenario)
+img_estrada = pygame.image.load("sprites/estrada.png").convert()
+imgs_construcoes = [
+    pygame.image.load("sprites/bar.png").convert_alpha(),
+    pygame.image.load("sprites/carro.png").convert_alpha(),
+    pygame.image.load("sprites/casa.png").convert_alpha(),
+]
+som_paredao = carregar_som("sons/paredao.wav", VOLUME_PAREDAO)
+som_passagem = carregar_som("sons/passagem.wav", VOLUME_TENSAO)
+terco_usado = False
+inicio_jogo = 0
+carregar_fase(0)
 rosto_mostrado = False
 inicio_rosto = 0
 
@@ -527,8 +563,12 @@ while rodando:
         elif evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_ESCAPE:
                 abrir_menu()
-            elif evento.key == pygame.K_RETURN and (estado_jogo == GAME_OVER or estado_jogo == VITORIA):
+            elif evento.key == pygame.K_RETURN and estado_jogo == GAME_OVER:
                 reiniciar()
+            elif evento.key == pygame.K_RETURN and estado_jogo == VITORIA:
+                novo_jogo()
+            elif evento.key == pygame.K_RETURN and estado_jogo == PASSAGEM:
+                passar_de_fase()
             elif evento.key == pygame.K_z and estado_jogo == JOGANDO and not terco_usado:
                 terco_usado = True
                 inicio_terco = agora
@@ -536,7 +576,7 @@ while rodando:
             elif evento.key == pygame.K_e and estado_jogo == JOGANDO:
                 usar_bicicleta(agora)
             elif evento.key == pygame.K_SPACE and estado_jogo == JOGANDO:
-                if tempo_pulso >= RECARGA_PULSO:
+                if tempo_pulso >= recarga:
                     ultimo_pulso = agora
                     tempo_pulso = 0
                     avisou_recarga = False
@@ -574,6 +614,10 @@ while rodando:
                 mensagem_fim = "Você não conseguiu se soltar do laço."
                 estado_jogo = GAME_OVER
                 pygame.mixer.stop()
+        elif estado_jogo == PASSAGEM:
+            telas.desenhar_passagem(tela, agora - inicio_tela, fase + 2, mapas.NOMES_FASES[fase + 1])
+            if agora - inicio_tela > TEMPO_PASSAGEM:
+                passar_de_fase()
         elif estado_jogo == HISTORIA:
             telas.desenhar_historia(tela, agora - inicio_tela)
         elif estado_jogo == AVISO:
@@ -599,7 +643,7 @@ while rodando:
         relogio.tick(FPS)
         continue
 
-    carga = min(tempo_pulso / RECARGA_PULSO, 1)
+    carga = min(tempo_pulso / recarga, 1)
     if carga >= 1 and not avisou_recarga:
         som_recarga.play()
         avisou_recarga = True
@@ -662,7 +706,10 @@ while rodando:
 
     jogador_cx = x + TAMANHO_JOGADOR // 2
     jogador_cy = y + TAMANHO_JOGADOR // 2
-    dist_cascavel = distancia(jogador_cx, jogador_cy, cascavel_x, cascavel_y)
+    if tem_cascavel:
+        dist_cascavel = distancia(jogador_cx, jogador_cy, cascavel_x, cascavel_y)
+    else:
+        dist_cascavel = LONGE
     velocidade = distancia(vel_x, vel_y, 0, 0)
 
     linha_jogador = int(jogador_cy // TAMANHO_BLOCO)
@@ -677,10 +724,15 @@ while rodando:
         vel_x = 0
         vel_y = 0
         som_armadilha.play()
+    elif mapa[linha_jogador][coluna_jogador] == "S" and fase < len(mapas.MAPAS) - 1:
+        estado_jogo = PASSAGEM
+        inicio_tela = agora
+        pygame.mixer.stop()
+        som_passagem.play()
     elif mapa[linha_jogador][coluna_jogador] == "S":
         estado_jogo = VITORIA
         inicio_vitoria = agora
-        tempo_travessia = int(agora - inicio_partida)
+        tempo_travessia = int(agora - inicio_jogo)
         pygame.mixer.stop()
         som_vitoria.play()
     elif mapa[linha_jogador][coluna_jogador] == "A" and bloco_atual not in assombros_usados:
@@ -690,7 +742,7 @@ while rodando:
 
     if agora >= proximo_assombro:
         agendar_assombro(agora)
-        proximo_assombro = agora + random.uniform(INTERVALO_MIN, INTERVALO_MAX)
+        proximo_assombro = agora + random.uniform(intervalo_min, intervalo_max)
 
     if assombro_agendado != NENHUM and agora >= assombro_agendado:
         assombro_agendado = NENHUM
@@ -767,10 +819,10 @@ while rodando:
         alvo_y = jogador_cy
         passo = VELOCIDADE_PERSEGUICAO
     else:
-        alvo_x, alvo_y = centro_do_bloco(ROTA_CANINANA[ponto_rota])
-        passo = VELOCIDADE_CANINANA
+        alvo_x, alvo_y = centro_do_bloco(rota_caninana[ponto_rota])
+        passo = velocidade_caninana
         if distancia(caninana_x, caninana_y, alvo_x, alvo_y) < passo:
-            ponto_rota = (ponto_rota + 1) % len(ROTA_CANINANA)
+            ponto_rota = (ponto_rota + 1) % len(rota_caninana)
 
     falta = distancia(caninana_x, caninana_y, alvo_x, alvo_y)
     if falta > 0:
@@ -792,6 +844,10 @@ while rodando:
         som_susto.play()
 
     som_chiado.set_volume(VOLUME_CHIADO * max(0, 1 - dist_caninana / DIST_SOM_CANINANA))
+    if len(paredao) > 0:
+        som_x, som_y = centro_do_bloco(paredao)
+        dist_paredao = distancia(jogador_cx, jogador_cy, som_x, som_y)
+        som_paredao.set_volume(VOLUME_PAREDAO * max(0, 1 - dist_paredao / DIST_SOM_PAREDAO))
     if montado:
         som_rangido.set_volume(VOLUME_RANGIDO * peso)
     else:
@@ -799,34 +855,35 @@ while rodando:
 
     perigo = min(dist_cascavel, dist_caninana)
 
-    no_curral = mapa[linha_jogador][coluna_jogador] == "C"
-    if no_curral and estado_vaca == QUIETA:
-        estado_vaca = BRAVA
-        inicio_vaca = agora
-        som_mugido.play()
-    elif not no_curral and estado_vaca == BRAVA:
-        estado_vaca = QUIETA
-    if estado_vaca == BRAVA and agora - inicio_vaca > TEMPO_BUFAR:
-        alvo_x, alvo_y = jogador_cx, jogador_cy
-        passo = VELOCIDADE_VACA
-    else:
-        alvo_x, alvo_y = vaca_casa_x, vaca_casa_y
-        passo = VELOCIDADE_VACA_CALMA
-    novo_x, novo_y = andar_ate(vaca_x, vaca_y, alvo_x, alvo_y, passo)
-    if mapa[int(novo_y // TAMANHO_BLOCO)][int(novo_x // TAMANHO_BLOCO)] == "C":
-        if novo_x != vaca_x or novo_y != vaca_y:
-            angulo_vaca = math.degrees(math.atan2(novo_x - vaca_x, novo_y - vaca_y))
-        vaca_x, vaca_y = novo_x, novo_y
-    dist_vaca = distancia(jogador_cx, jogador_cy, vaca_x, vaca_y)
-    if estado_vaca == BRAVA:
-        perigo = min(perigo, dist_vaca)
-        if dist_vaca < DIST_CHIFRE:
-            estado_jogo = SUSTO
-            inicio_susto = agora
-            img_susto = img_vaca_rosto
-            mensagem_fim = "A vaca parida te prensou na cerca."
-            pygame.mixer.stop()
-            som_susto.play()
+    if tem_vaca:
+        no_curral = mapa[linha_jogador][coluna_jogador] == "C"
+        if no_curral and estado_vaca == QUIETA:
+            estado_vaca = BRAVA
+            inicio_vaca = agora
+            som_mugido.play()
+        elif not no_curral and estado_vaca == BRAVA:
+            estado_vaca = QUIETA
+        if estado_vaca == BRAVA and agora - inicio_vaca > TEMPO_BUFAR:
+            alvo_x, alvo_y = jogador_cx, jogador_cy
+            passo = VELOCIDADE_VACA
+        else:
+            alvo_x, alvo_y = vaca_casa_x, vaca_casa_y
+            passo = VELOCIDADE_VACA_CALMA
+        novo_x, novo_y = andar_ate(vaca_x, vaca_y, alvo_x, alvo_y, passo)
+        if mapa[int(novo_y // TAMANHO_BLOCO)][int(novo_x // TAMANHO_BLOCO)] == "C":
+            if novo_x != vaca_x or novo_y != vaca_y:
+                angulo_vaca = math.degrees(math.atan2(novo_x - vaca_x, novo_y - vaca_y))
+            vaca_x, vaca_y = novo_x, novo_y
+        dist_vaca = distancia(jogador_cx, jogador_cy, vaca_x, vaca_y)
+        if estado_vaca == BRAVA:
+            perigo = min(perigo, dist_vaca)
+            if dist_vaca < DIST_CHIFRE:
+                estado_jogo = SUSTO
+                inicio_susto = agora
+                img_susto = img_vaca_rosto
+                mensagem_fim = "A vaca parida te prensou na cerca."
+                pygame.mixer.stop()
+                som_susto.play()
 
     if agora >= proximo_ei:
         canal = som_ei.play()
@@ -837,9 +894,9 @@ while rodando:
                 canal.set_volume(0, VOLUME_EI)
         proximo_ei = agora + random.uniform(EI_MIN, EI_MAX)
     if mulher_ativa:
-        alvo_x, alvo_y = centro_do_bloco(ROTA_MULHER[ponto_mulher])
+        alvo_x, alvo_y = centro_do_bloco(rota_mulher[ponto_mulher])
         if distancia(mulher_x, mulher_y, alvo_x, alvo_y) < VELOCIDADE_MULHER:
-            ponto_mulher = (ponto_mulher + 1) % len(ROTA_MULHER)
+            ponto_mulher = (ponto_mulher + 1) % len(rota_mulher)
         mulher_x, mulher_y = andar_ate(mulher_x, mulher_y, alvo_x, alvo_y, VELOCIDADE_MULHER)
         dist_mulher = distancia(jogador_cx, jogador_cy, mulher_x, mulher_y)
         perigo = min(perigo, dist_mulher)
@@ -853,9 +910,9 @@ while rodando:
             som_lamento.stop()
             som_grito_mulher.play()
 
-    alvo = RAIO_LUZ
+    alvo = raio_base
     if perigo < DIST_MEDO:
-        alvo = RAIO_MIN + (RAIO_LUZ - RAIO_MIN) * perigo / DIST_MEDO
+        alvo = RAIO_MIN + (raio_base - RAIO_MIN) * perigo / DIST_MEDO
     if agora < fim_veneno:
         alvo = min(alvo, RAIO_VENENO)
     raio_luz += (alvo - raio_luz) * SUAVIZACAO
@@ -865,16 +922,17 @@ while rodando:
     terco_ativo = tempo_terco < TEMPO_TERCO
 
     tela.blit(cenario, (0, 0))
-    if not atacando:
+    if tem_cascavel and not atacando:
         desenhar_cascavel()
     desenhar_caninana()
-    telas.desenhar_centro(tela, pygame.transform.rotate(img_vaca, angulo_vaca), vaca_x, vaca_y)
+    if tem_vaca:
+        telas.desenhar_centro(tela, pygame.transform.rotate(img_vaca, angulo_vaca), vaca_x, vaca_y)
     if montado:
         if direcao == CIMA or direcao == BAIXO:
             telas.desenhar_centro(tela, img_bicicleta_em_pe, jogador_cx, jogador_cy)
         else:
             telas.desenhar_centro(tela, img_bicicleta, jogador_cx, jogador_cy)
-    else:
+    elif tem_bicicleta:
         telas.desenhar_centro(tela, img_bicicleta, bici_x, bici_y)
     tela.blit(imagens_jogador[direcao][quadro], (int(x), int(y)))
     if montado and peso > PESO_FANTASMA:
@@ -906,12 +964,21 @@ while rodando:
     sombra.fill((0, 0, 0, escuro))
     canto = (int(jogador_cx) - tamanho // 2, int(jogador_cy) - tamanho // 2)
     sombra.blit(luz, canto, special_flags=pygame.BLEND_RGBA_MIN)
+    for luz_linha, luz_coluna, luz_raio in luzes:
+        luz_x, luz_y = centro_do_bloco([luz_linha, luz_coluna])
+        tamanho = int(luz_raio * 2 * ALCANCE_LUZ)
+        mancha = pygame.transform.smoothscale(gradiente, (tamanho, tamanho))
+        sombra.blit(mancha, (luz_x - tamanho // 2, luz_y - tamanho // 2), special_flags=pygame.BLEND_RGBA_MIN)
     tela.blit(sombra, (0, 0))
+    if len(paredao) > 0:
+        som_x, som_y = centro_do_bloco(paredao)
+        cor = CORES_PAREDAO[int(agora * PISCADAS_POR_SEGUNDO) % len(CORES_PAREDAO)]
+        telas.desenhar_luz_colorida(tela, som_x, som_y, cor)
     if terco_ativo:
         brilho.fill((COR_TERCO[0], COR_TERCO[1], COR_TERCO[2], int(BRILHO_TERCO * (1 - tempo_terco / TEMPO_TERCO))))
         tela.blit(brilho, (0, 0))
 
-    if estado_vaca == BRAVA:
+    if tem_vaca and estado_vaca == BRAVA:
         direcao_vaca = math.radians(angulo_vaca)
         cabeca_vaca_x = vaca_x + math.sin(direcao_vaca) * DIST_OLHOS_VACA
         cabeca_vaca_y = vaca_y + math.cos(direcao_vaca) * DIST_OLHOS_VACA
@@ -922,15 +989,17 @@ while rodando:
     if mulher_ativa:
         flutuar = math.sin(agora * FLUTUAR_VELOCIDADE) * FLUTUAR_ALTURA
         telas.desenhar_centro(tela, img_mulher, mulher_x, mulher_y + flutuar)
-    if atacando:
+    if tem_cascavel and atacando:
         desenhar_cascavel()
     if agora - inicio_mordida < DURACAO_FLASH_MORDIDA:
         tela.fill(COR_MORDIDA)
     telas.desenhar_barra(tela, carga)
     telas.desenhar_terco(tela, not terco_usado)
-    if montado:
+    if agora - inicio_partida < TEMPO_NOME_FASE:
+        telas.desenhar_dica(tela, "Fase " + str(fase + 1) + ": " + mapas.NOMES_FASES[fase])
+    elif montado:
         telas.desenhar_dica(tela, "E para largar a bicicleta")
-    elif distancia(jogador_cx, jogador_cy, bici_x, bici_y) < DIST_PEGAR:
+    elif tem_bicicleta and distancia(jogador_cx, jogador_cy, bici_x, bici_y) < DIST_PEGAR:
         telas.desenhar_dica(tela, "E para pegar a bicicleta")
     pygame.display.flip()
     relogio.tick(FPS)

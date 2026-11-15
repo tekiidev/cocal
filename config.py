@@ -19,21 +19,17 @@ DIREITA = 3
 
 TAMANHO_BLOCO = 40
 TAMANHO_JOGADOR = 32
-LINHA_INICIAL = 1
-COLUNA_INICIAL = 1
 
 COR_MATO = (12, 40, 18)
 COR_TRILHA = (90, 70, 45)
 COR_ARMADILHA = (120, 30, 30)
 COR_SAIDA = (200, 180, 90)
 
-RAIO_LUZ = 70
 ESCURIDAO = 255
 TAMANHO_GRADIENTE = 128
 NUCLEO_LUZ = 0.4
 ALCANCE_LUZ = 1.4
 
-RECARGA_PULSO = 25
 DURACAO_PULSO = 1.5
 
 BARRA_X = 20
@@ -59,8 +55,6 @@ ATENTA = 1
 BOTE = 2
 RECUA = 3
 
-CASCAVEL_LINHA = 12
-CASCAVEL_COLUNA = 15
 DIST_ATENTA = 160
 DIST_BOTE = 90
 VELOCIDADE_SEGURA = 2.2
@@ -133,8 +127,6 @@ NENHUM = -1
 
 ATRASO_MIN = 0.3
 ATRASO_MAX = 1.5
-INTERVALO_MIN = 20
-INTERVALO_MAX = 45
 
 DIST_VULTO = 110
 DESVIO_VULTO_Y = -10
@@ -149,8 +141,6 @@ VOLUME_SUSSURRO = 0.9
 
 PATRULHA = 0
 PERSEGUINDO = 1
-ROTA_CANINANA = [[10, 3], [10, 12]]
-VELOCIDADE_CANINANA = 1.2
 VELOCIDADE_PERSEGUICAO = 2.2
 DIST_OUVIR = 150
 TEMPO_PERSEGUICAO = 2
@@ -172,9 +162,8 @@ ZOOM_ROSTO_FINAL = 10
 TREMOR_ROSTO = 20
 VOLUME_GRITO = 1.0
 
-BLOCOS_SOLIDOS = "#L+"
+BLOCOS_SOLIDOS = "#L+WH"
 
-ROTA_MULHER = [[3, 4], [3, 1], [5, 1], [5, 4]]
 VELOCIDADE_MULHER = 0.5
 DIST_MULHER = 45
 DIST_SOM_MULHER = 200
@@ -204,8 +193,6 @@ VOLUME_GRITO_MULHER = 1.0
 BALANCO_ARROZ = 2
 VELOCIDADE_BALANCO = 1.5
 
-BICICLETA_LINHA = 7
-BICICLETA_COLUNA = 3
 VELOCIDADE_BICICLETA = 8
 VELOCIDADE_PESADA = 1
 DIST_PESO_MAX = 400
@@ -230,32 +217,32 @@ HISTORIA = 9
 AVISO = 10
 
 TEXTO_HISTORIA = [
-    "Este jogo foi inspirado em histórias vividas e contadas",
-    "no povoado João Rufino, em Trizidela do Vale, Maranhão.",
+    "Marminino, esse jogo saiu das histórias do povoado",
+    "João Rufino, lá em Trizidela do Vale, Maranhão.",
     "",
-    "Quando eu era criança, no açude com o meu pai,",
-    "uma caninana passou entre as minhas pernas.",
-    "Dei um pulo tão grande que fui parar na beira d'água.",
+    "Eu era pirralho, tava mais meu pai no açude, quando",
+    "uma caninana passou bem no meio das minhas pernas.",
+    "Égua, dei um pulo que fui parar na beira d'água!",
     "",
-    "Na estrada perto do cemitério, aparece o vulto",
-    "de uma mulher de vestido branco.",
-    "Dizem que uma alma sobe na garupa das bicicletas",
-    "até elas ficarem pesadas demais para andar.",
-    "No mato, a cascavel é comum. E a vaca parida avança",
-    "em quem chega perto.",
+    "Na estrada do cemitério, o povo jura que já viu",
+    "uma mulher de vestido branco andando de noite.",
+    "E tem alma que monta na garupa da bicicleta",
+    "e vai pesando, pesando, até num andar mais.",
+    "No mato é cascavel pra todo lado. E vaca parida,",
+    "rapaz, se tu chegar perto ela vem pra cima.",
     "",
-    "No Cocal, de noite, a gente escuta mais do que vê.",
+    "Visse? De noite no Cocal, a gente escuta mais do que vê.",
 ]
 TITULO_AVISO = "Antes de entrar na mata"
 TEXTO_AVISO = [
-    "Jogue de noite, com a luz apagada e de fone de ouvido.",
-    "Este jogo tem sustos, sons altos e luzes piscando.",
+    "Joga de noite, com a luz apagada e de fone, visse?",
+    "Tem susto, barulho alto e luz piscando.",
 ]
 TEXTO_TERCO = [
     "Reza do terço (tecla Z)",
-    "Um clarão dourado mostra a mata inteira por alguns segundos,",
-    "com tudo o que se esconde nela.",
-    "Só dá para rezar uma vez por noite.",
+    "Um clarão dourado mostra a mata todinha num piscar de olho,",
+    "com tudo que tá escondido nela.",
+    "Mas só dá pra rezar uma vez por noite.",
 ]
 TEXTO_BOTAO = "CONTINUAR"
 
@@ -275,12 +262,12 @@ TEMPO_FADE_AVISO = 1.5
 VOLUME_TENSAO = 0.8
 DICA_FIM_Y = 555
 
-TEMPO_TERCO = 3
-FADE_TERCO = 1
+TEMPO_TERCO = 1.2
+FADE_TERCO = 0.5
 COR_TERCO = (232, 192, 96)
 COR_TERCO_USADO = (80, 80, 80)
 BRILHO_TERCO = 70
-TERCO_X = 760
+TERCO_X = 215
 TERCO_Y = 572
 CONTAS_TERCO = 10
 RAIO_TERCO = 12
@@ -298,8 +285,6 @@ VELOCIDADE_LAMA = 2
 
 QUIETA = 0
 BRAVA = 1
-VACA_LINHA = 1
-VACA_COLUNA = 14
 VELOCIDADE_VACA = 2.7
 VELOCIDADE_VACA_CALMA = 0.6
 TEMPO_BUFAR = 0.8
@@ -312,3 +297,28 @@ VOLUME_MUGIDO = 0.9
 EI_MIN = 15
 EI_MAX = 40
 VOLUME_EI = 0.7
+
+BAR = 0
+CARRO = 1
+CASA = 2
+
+RAIOS_LUZ = [80, 70, 58]
+RECARGAS_PULSO = [20, 25, 30]
+VELOCIDADES_CANINANA = [1.0, 1.2, 1.5]
+INTERVALOS_MIN = [30, 22, 14]
+INTERVALOS_MAX = [50, 40, 26]
+
+PASSAGEM = 11
+TEMPO_PASSAGEM = 4
+TEMPO_NOME_FASE = 4
+LONGE = 99999
+
+COR_AGUA = (24, 52, 64)
+COR_ONDA = (52, 92, 104)
+COR_CONSTRUCAO = (30, 22, 14)
+CORES_PAREDAO = [(255, 40, 60), (40, 120, 255), (60, 255, 120), (255, 200, 40), (220, 60, 255)]
+PISCADAS_POR_SEGUNDO = 4
+FORCA_COR_PAREDAO = 70
+RAIO_COR_PAREDAO = 110
+DIST_SOM_PAREDAO = 420
+VOLUME_PAREDAO = 0.8

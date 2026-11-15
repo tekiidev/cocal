@@ -16,6 +16,7 @@ Todos os direitos reservados.
 
 - `main.py`: o loop do jogo, o jogador, a caninana e o mapa
 - `config.py`: as constantes (velocidades, cores, tempos, volumes)
+- `mapas.py`: os mapas das 3 fases e onde fica cada coisa em cada uma
 - `telas.py`: o desenho das telas (menu, laço, susto, game over e vitória)
 - `sprites/`: imagens dos personagens
 - `sons/`: efeitos sonoros

@@ -272,3 +272,18 @@ def desenhar_terco(tela, disponivel):
     pygame.draw.line(tela, cor, (TERCO_X - 4, TERCO_Y + 5), (TERCO_X + 4, TERCO_Y + 5), 2)
     letra = fonte_pequena.render("Z", True, cor)
     desenhar_centro(tela, letra, TERCO_X - RAIO_TERCO * 2 - 6, TERCO_Y - RAIO_TERCO)
+
+
+def desenhar_luz_colorida(tela, cx, cy, cor):
+    luz = pygame.Surface((RAIO_COR_PAREDAO * 2, RAIO_COR_PAREDAO * 2), pygame.SRCALPHA)
+    pygame.draw.circle(luz, (cor[0], cor[1], cor[2], FORCA_COR_PAREDAO), (RAIO_COR_PAREDAO, RAIO_COR_PAREDAO), RAIO_COR_PAREDAO)
+    pygame.draw.circle(luz, (cor[0], cor[1], cor[2], FORCA_COR_PAREDAO), (RAIO_COR_PAREDAO, RAIO_COR_PAREDAO), RAIO_COR_PAREDAO // 2)
+    tela.blit(luz, (int(cx) - RAIO_COR_PAREDAO, int(cy) - RAIO_COR_PAREDAO))
+
+
+def desenhar_passagem(tela, tempo, numero, nome):
+    tela.fill(COR_FUNDO)
+    claridade = min(tempo / TEMPO_FADE_AVISO, 1)
+    cor = cor_de_lamparina(claridade)
+    escrever(tela, "Fase " + str(numero), fonte, cor, LARGURA // 2, ALTURA // 2 - ESPACO_LINHAS // 2)
+    escrever(tela, nome, fonte_pequena, cor, LARGURA // 2, ALTURA // 2 + ESPACO_LINHAS // 2)

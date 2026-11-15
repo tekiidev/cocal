@@ -123,6 +123,20 @@ Entrega: 1 de dezembro de 2026.
 - Vaca parida: estados QUIETA e BRAVA. Entrou na lama, ela muge e fica BRAVA; depois de `TEMPO_BUFAR` corre atrás do jogador a `VELOCIDADE_VACA` (2.7, mais rápida que ele na lama). Não sai do curral (só anda se o próximo ponto for `C`). Saindo do curral ela desiste e volta devagar para o canto. Olhos vermelhos no escuro quando brava. Chifrada (`DIST_CHIFRE`) é game over ("A vaca parida te prensou na cerca."). A saída do curral fica do lado oposto à entrada e a vaca começa perto da entrada, para vir por trás. Teste: atravessando sem parar ela chega a 37 px (chifrada a 28); parado, ela pega.
 - Sapo do "ei, ei, ei": voz sintetizada que parece gente chamando, tocada a cada `EI_MIN` a `EI_MAX` segundos (sorteado), num lado só do fone.
 - Sprites e sons provisórios: sprites/vaca.png, vaca_rosto.png; sons/mugido.wav, sons/ei.wav.
+- TRÊS FASES (mapas no arquivo `mapas.py`). Os perigos acumulam:
+  - Fase 1, A mata e o açude: caninana, laço e vultos no arroz. Açude (`W`, sólido). Sem cascavel.
+  - Fase 2, A estrada do cemitério e o Bar da Oneide: + mulher de branco no cemitério, bicicleta na estrada, cascavel ao lado da estrada. Bar de barro com telha de cerâmica e caminhonete com paredão (luz colorida piscando e som que diminui com a distância). Estrada com textura (`E` na decoração). Saída no portão do cemitério.
+  - Fase 3, As fazendas do morro: + curral obrigatório com a vaca parida (ela começa no canto oposto e a saída do curral é para longe dela). Duas casas de taipa e palha. Caminho mais longo (48 blocos).
+  - Dificuldade por fase (listas no config.py): `RAIOS_LUZ` 80/70/58, `RECARGAS_PULSO` 20/25/30, `VELOCIDADES_CANINANA` 1.0/1.2/1.5, assombros mais frequentes (`INTERVALOS_MIN`, `INTERVALOS_MAX`).
+  - `mapas.py` tem uma lista por coisa que muda de fase: `MAPAS`, `DECORACOES`, `INICIOS`, `CASCAVEIS`, `BICICLETAS`, `VACAS`, `ROTAS_CANINANA`, `ROTAS_MULHER`, `CONSTRUCOES` (bar, carro, casa), `LUZES` (pontos que clareiam o escuro), `PAREDOES`, `NOMES_FASES`. A posição `[0]` é a fase 1. Lista vazia = a fase não tem.
+  - `carregar_fase(numero)` pega tudo da fase, guarda em variáveis (`mapa`, `decoracao`, `raio_base`, `recarga`...) e desenha o `cenario`. `novo_jogo()` começa da fase 1 e zera o terço. `passar_de_fase()` carrega a próxima.
+  - Chegar no `S` das fases 1 e 2 mostra a tela de passagem (estado `PASSAGEM`, 4 s ou ENTER). Na fase 3 é vitória, com o tempo total desde o começo do jogo.
+  - Game over recomeça a fase atual. O terço vale uma vez no jogo todo ("uma vez por noite"): só volta num jogo novo pelo menu.
+  - Nome da fase aparece no topo nos primeiros `TEMPO_NOME_FASE` segundos.
+  - Nas fases sem cascavel, `dist_cascavel = LONGE`, então ela nunca acorda. Vaca e bicicleta só existem quando `tem_vaca` e `tem_bicicleta`.
+  - Teste: as 3 fases foram vencidas por um jogador automático cuidadoso, e o jogo inteiro (fase 1 → 2 → 3 → vitória, com uma morte no meio) funcionou.
+- Texto da história com jeito de interior (marminino, égua, visse). Clarão do terço mais rápido (`TEMPO_TERCO` 1.2 s).
+- Sprites e sons provisórios: sprites/bar.png, carro.png, casa.png, estrada.png; sons/paredao.wav, sons/passagem.wav.
 - Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
 - Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
@@ -140,14 +154,13 @@ Entrega: 1 de dezembro de 2026.
 | Quanto desliza ao soltar | `ATRITO` (menor = para mais rápido, 1 = nunca para) | config.py |
 | Ritmo da animação de passos | `QUADROS_POR_PASSO` (menor = passos mais rápidos) | config.py |
 | Velocidade mínima para animar | `VEL_MIN_ANIMACAO` | config.py |
-| Desenho do labirinto | a lista `mapa` (`#` mato, `.` trilha, `T` armadilha, `S` saída) | main.py |
 | Tamanho dos blocos do mapa | `TAMANHO_BLOCO` | config.py |
 | Onde o jogador começa | `LINHA_INICIAL` e `COLUNA_INICIAL` | config.py |
 | Cores do mapa | `COR_MATO`, `COR_TRILHA`, `COR_ARMADILHA`, `COR_SAIDA` | config.py |
 | Tamanho da caixa de colisão | `TAMANHO_JOGADOR` | config.py |
-| Tamanho da luz | `RAIO_LUZ` | config.py |
+| Tamanho da luz | `RAIOS_LUZ` (um por fase) | config.py |
 | Quão escuro fica fora da luz | `ESCURIDAO` (255 = breu, 0 = sem escuro) | config.py |
-| Tempo de recarga do pulso | `RECARGA_PULSO` (segundos) | config.py |
+| Tempo de recarga do pulso | `RECARGAS_PULSO` (um por fase) | config.py |
 | Quanto tempo o pulso mostra o mapa | `DURACAO_PULSO` (segundos) | config.py |
 | Tecla do pulso | `pygame.K_SPACE` no `if` do KEYDOWN | main.py |
 | Posição e tamanho da barra | `BARRA_X`, `BARRA_Y`, `BARRA_LARGURA`, `BARRA_ALTURA` | config.py |
@@ -200,7 +213,6 @@ Entrega: 1 de dezembro de 2026.
 | Susto da mulher (tempo, zoom, tremor) | `DURACAO_SUSTO_MULHER`, `TEMPO_AVANCO`, `ZOOM_MULHER_INICIAL`, `ZOOM_MULHER_MEIO`, `CRESCIMENTO_MULHER`, `TREMOR_MULHER` | config.py |
 | Braços e mãos do susto | `TEMPO_BRACOS`, `COTOVELO_X`, `COTOVELO_Y`, `MAO_ESQUERDA_Y`, `MAO_DIREITA_Y`, `ESCALA_MAO`, `GROSSURA_BRACO`, `COR_BRACO` | config.py |
 | Volumes da mulher | `VOLUME_LAMENTO`, `VOLUME_GRITO_MULHER` | config.py |
-| Onde ficam palmeiras, matas, bananeiras e arroz | letras da matriz `decoracao` | main.py |
 | Quanto o arroz balança | `BALANCO_ARROZ`, `VELOCIDADE_BALANCO` | config.py |
 | Onde fica a bicicleta | `BICICLETA_LINHA`, `BICICLETA_COLUNA` | config.py |
 | Velocidade da bicicleta leve e pesada | `VELOCIDADE_BICICLETA`, `VELOCIDADE_PESADA` | config.py |
@@ -222,6 +234,14 @@ Entrega: 1 de dezembro de 2026.
 | Vaca (lugar, velocidade, aviso, chifrada) | `VACA_LINHA`, `VACA_COLUNA`, `VELOCIDADE_VACA`, `VELOCIDADE_VACA_CALMA`, `TEMPO_BUFAR`, `DIST_CHIFRE` | config.py |
 | Cores do curral | `COR_LAMA`, `COR_POCA`, `COR_CERCA` | config.py |
 | Frequência do "ei, ei, ei" | `EI_MIN`, `EI_MAX`, `VOLUME_EI` | config.py |
+| Os mapas das 3 fases | `MAPAS` e `DECORACOES` | mapas.py |
+| Onde cada coisa fica em cada fase | `INICIOS`, `CASCAVEIS`, `BICICLETAS`, `VACAS`, `ROTAS_CANINANA`, `ROTAS_MULHER` | mapas.py |
+| Bar, carro e casas | `CONSTRUCOES` | mapas.py |
+| Luzes que clareiam o escuro (bar, janelas) | `LUZES` | mapas.py |
+| Nome de cada fase | `NOMES_FASES` | mapas.py |
+| Dificuldade de cada fase | `RAIOS_LUZ`, `RECARGAS_PULSO`, `VELOCIDADES_CANINANA`, `INTERVALOS_MIN`, `INTERVALOS_MAX` | config.py |
+| Paredão (cores, piscadas, volume) | `CORES_PAREDAO`, `PISCADAS_POR_SEGUNDO`, `RAIO_COR_PAREDAO`, `DIST_SOM_PAREDAO`, `VOLUME_PAREDAO` | config.py |
+| Tempo da tela de passagem | `TEMPO_PASSAGEM` | config.py |
 | Onde fica a saída | letra `S` no `mapa` | main.py |
 | Tempo do amanhecer na vitória | `TEMPO_AMANHECER` (segundos) | config.py |
 | Cor do amanhecer | `COR_AMANHECER` | config.py |
