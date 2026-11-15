@@ -102,3 +102,9 @@ def desenhar_menu(tela, tempo, quadros_logo, opcao, retangulos):
                 cor = COR_OPCAO_SELECIONADA
             imagem = fonte.render(texto, True, cor)
             desenhar_centro(tela, imagem, retangulos[i].centerx, retangulos[i].centery)
+
+
+def desenhar_vulto(tela, vx, vy):
+    corpo = (int(vx) - TAMANHO_VULTO, int(vy) - TAMANHO_VULTO, TAMANHO_VULTO * 2, TAMANHO_VULTO * 3)
+    pygame.draw.ellipse(tela, COR_VULTO, corpo)
+    pygame.draw.circle(tela, COR_VULTO, (int(vx), int(vy) - TAMANHO_VULTO), TAMANHO_VULTO)

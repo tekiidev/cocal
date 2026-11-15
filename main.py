@@ -9,15 +9,15 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 mapa = [
     "####################",
-    "#....#.......#.....#",
+    "#....#...A...#.....#",
     "#.##.#.#####.#.###.#",
     "#.#..#.#...#...#...#",
     "#.#.##.#.#.#####.###",
-    "#.#....#.#.....#...#",
+    "#A#....#.#.....#...#",
     "#.######.#####.###.#",
-    "#......#.....#.....#",
+    "#....A.#.....#.....#",
     "######.#####.###.#.#",
-    "#....#.#...#...#.#.#",
+    "#....#.#.A.#...#.#.#",
     "#.##.#.#.#.###.#.#.#",
     "#.#..T...#...#...#.#",
     "#.#.######.#.#####.#",
@@ -74,45 +74,44 @@ def carregar_som(arquivo, volume):
     return som
 
 
-
-
 def distancia(ax, ay, bx, by):
     return ((ax - bx) ** 2 + (ay - by) ** 2) ** 0.5
 
 
+def desenhar_cascavel():
+    if estado_cascavel == ESCONDIDA:
+        if tempo_pulso < DURACAO_PULSO:
+            telas.desenhar_centro(tela, img_cascavel_enrolada, casa_x, casa_y)
+    elif estado_cascavel == ATENTA:
+        tremor_x = random.randint(-TREMOR_ATENTA, TREMOR_ATENTA)
+        tremor_y = random.randint(-TREMOR_ATENTA, TREMOR_ATENTA)
+        telas.desenhar_centro(tela, img_cascavel_enrolada, casa_x + tremor_x, casa_y + tremor_y)
+    else:
+        for i in range(len(corpo_cascavel) - 1, -1, -1):
+            if i % 2 == 0:
+                segmento = img_cascavel_claro
+            else:
+                segmento = img_cascavel_escuro
+            telas.desenhar_centro(tela, segmento, corpo_cascavel[i][0], corpo_cascavel[i][1])
+        cabeca = pygame.transform.rotate(img_cascavel_cabeca, angulo_cascavel)
+        telas.desenhar_centro(tela, cabeca, cascavel_x, cascavel_y)
 
 
 def desenhar_caninana():
-    if estado_caninana == ESCONDIDA:
-        if tempo_pulso < DURACAO_PULSO:
-            telas.desenhar_centro(tela, img_enrolada, casa_x, casa_y)
-    elif estado_caninana == ATENTA:
-        tremor_x = random.randint(-TREMOR_ATENTA, TREMOR_ATENTA)
-        tremor_y = random.randint(-TREMOR_ATENTA, TREMOR_ATENTA)
-        telas.desenhar_centro(tela, img_enrolada, casa_x + tremor_x, casa_y + tremor_y)
-    else:
-        for i in range(len(corpo) - 1, -1, -1):
-            if i % 2 == 0:
-                segmento = img_corpo_amarelo
-            else:
-                segmento = img_corpo_preto
-            telas.desenhar_centro(tela, segmento, corpo[i][0], corpo[i][1])
-        cabeca = pygame.transform.rotate(img_cabeca, angulo)
-        telas.desenhar_centro(tela, cabeca, cabeca_x, cabeca_y)
+    numero = 0
+    for i in range(len(rastro) - 1, 0, -ESPACO_RASTRO):
+        if numero % 2 == 0:
+            segmento = img_caninana_amarelo
+        else:
+            segmento = img_caninana_preto
+        telas.desenhar_centro(tela, segmento, rastro[i][0], rastro[i][1])
+        numero += 1
+    cabeca = pygame.transform.rotate(img_caninana_cabeca, angulo_caninana)
+    telas.desenhar_centro(tela, cabeca, caninana_x, caninana_y)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+def centro_do_bloco(ponto):
+    return ponto[1] * TAMANHO_BLOCO + TAMANHO_BLOCO // 2, ponto[0] * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
 
 
 def abrir_menu():
@@ -126,11 +125,50 @@ def abrir_menu():
     pygame.mouse.set_visible(True)
 
 
+def sortear_assombro():
+    global fila_assombros, ultimo_assombro
+    if len(fila_assombros) == 0:
+        fila_assombros = TIPOS_ASSOMBRO[:]
+        random.shuffle(fila_assombros)
+        if fila_assombros[-1] == ultimo_assombro:
+            fila_assombros[0], fila_assombros[-1] = fila_assombros[-1], fila_assombros[0]
+    ultimo_assombro = fila_assombros.pop()
+    return ultimo_assombro
+
+
+def agendar_assombro(agora):
+    global assombro_agendado
+    if assombro_agendado == NENHUM and assombro_atual == NENHUM:
+        assombro_agendado = agora + random.uniform(ATRASO_MIN, ATRASO_MAX)
+
+
+def comecar_assombro(agora):
+    global assombro_atual, inicio_assombro, lado_assombro
+    assombro_atual = sortear_assombro()
+    inicio_assombro = agora
+    lado_assombro = random.choice([-1, 1])
+    if assombro_atual == VULTO:
+        som_vulto.play()
+    elif assombro_atual == LAMPARINA:
+        som_lamparina.play()
+    else:
+        canal = som_sussurro.play()
+        if canal is not None:
+            if lado_assombro == -1:
+                canal.set_volume(VOLUME_SUSSURRO, 0)
+            else:
+                canal.set_volume(0, VOLUME_SUSSURRO)
+
+
 def reiniciar():
     global x, y, vel_x, vel_y, direcao, quadro, contador
     global ultimo_pulso, avisou_recarga, raio_luz, estado_jogo
-    global estado_caninana, cabeca_x, cabeca_y, corpo, inicio_atenta, angulo
+    global estado_cascavel, cascavel_x, cascavel_y, corpo_cascavel, inicio_atenta, angulo_cascavel
     global armadilhas_usadas, mensagem_fim, inicio_partida
+    global assombros_usados, fila_assombros, ultimo_assombro
+    global assombro_atual, assombro_agendado, proximo_assombro
+    global caninana_x, caninana_y, estado_caninana, ponto_rota, fim_perseguicao, rastro, angulo_caninana
+    global fim_veneno, inicio_mordida
 
     margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
     x = COLUNA_INICIAL * TAMANHO_BLOCO + margem
@@ -146,19 +184,37 @@ def reiniciar():
     raio_luz = RAIO_LUZ
     estado_jogo = JOGANDO
 
-    estado_caninana = ESCONDIDA
-    cabeca_x = casa_x
-    cabeca_y = casa_y
-    corpo = []
+    estado_cascavel = ESCONDIDA
+    cascavel_x = casa_x
+    cascavel_y = casa_y
+    corpo_cascavel = []
     inicio_atenta = 0
-    angulo = 0
+    angulo_cascavel = 0
+    fim_veneno = 0
+    inicio_mordida = -DURACAO_FLASH_MORDIDA
+
+    caninana_x, caninana_y = centro_do_bloco(ROTA_CANINANA[0])
+    estado_caninana = PATRULHA
+    ponto_rota = 1
+    fim_perseguicao = 0
+    rastro = []
+    angulo_caninana = 0
 
     armadilhas_usadas = []
     mensagem_fim = ""
     inicio_partida = pygame.time.get_ticks() / 1000
 
+    assombros_usados = []
+    fila_assombros = []
+    ultimo_assombro = NENHUM
+    assombro_atual = NENHUM
+    assombro_agendado = NENHUM
+    proximo_assombro = inicio_partida + random.uniform(INTERVALO_MIN, INTERVALO_MAX)
+
     pygame.mixer.stop()
     som_ambiente.play(loops=-1)
+    som_chocalho.set_volume(0)
+    som_chocalho.play(loops=-1)
     som_chiado.set_volume(0)
     som_chiado.play(loops=-1)
     pygame.mouse.set_visible(False)
@@ -179,10 +235,13 @@ imagens_jogador = [
     carregar_jogador("esquerda"),
     carregar_jogador("direita"),
 ]
-img_cabeca = pygame.image.load("sprites/caninana_cabeca.png").convert_alpha()
-img_corpo_amarelo = pygame.image.load("sprites/caninana_corpo_amarelo.png").convert_alpha()
-img_corpo_preto = pygame.image.load("sprites/caninana_corpo_preto.png").convert_alpha()
-img_enrolada = pygame.image.load("sprites/caninana_enrolada.png").convert_alpha()
+img_cascavel_cabeca = pygame.image.load("sprites/cascavel_cabeca.png").convert_alpha()
+img_cascavel_claro = pygame.image.load("sprites/cascavel_corpo_claro.png").convert_alpha()
+img_cascavel_escuro = pygame.image.load("sprites/cascavel_corpo_escuro.png").convert_alpha()
+img_cascavel_enrolada = pygame.image.load("sprites/cascavel_enrolada.png").convert_alpha()
+img_caninana_cabeca = pygame.image.load("sprites/caninana_cabeca.png").convert_alpha()
+img_caninana_amarelo = pygame.image.load("sprites/caninana_corpo_amarelo.png").convert_alpha()
+img_caninana_preto = pygame.image.load("sprites/caninana_corpo_preto.png").convert_alpha()
 
 quadros_logo = []
 for i in range(TOTAL_QUADROS_LOGO):
@@ -190,8 +249,8 @@ for i in range(TOTAL_QUADROS_LOGO):
 
 retangulos_opcoes = telas.criar_retangulos_opcoes()
 
-casa_x = CANINANA_COLUNA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
-casa_y = CANINANA_LINHA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
+casa_x = CASCAVEL_COLUNA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
+casa_y = CASCAVEL_LINHA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
 
 sombra = pygame.Surface((LARGURA, ALTURA))
 sombra.set_colorkey(COR_BURACO)
@@ -200,7 +259,7 @@ som_passo = carregar_som("sons/passo.wav", VOLUME_PASSO)
 som_pulso = carregar_som("sons/pulso.wav", VOLUME_PULSO)
 som_recarga = carregar_som("sons/recarga.wav", VOLUME_RECARGA)
 som_ambiente = carregar_som("musica/ambiente.wav", VOLUME_AMBIENTE)
-som_chiado = carregar_som("sons/chiado.wav", VOLUME_CHIADO)
+som_chocalho = carregar_som("sons/chocalho.wav", VOLUME_CHOCALHO)
 som_bote = carregar_som("sons/bote.wav", VOLUME_BOTE)
 som_susto = carregar_som("sons/susto.wav", VOLUME_SUSTO)
 som_intro = carregar_som("sons/intro.wav", VOLUME_INTRO)
@@ -208,7 +267,15 @@ som_navegar = carregar_som("sons/navegar.wav", VOLUME_NAVEGAR)
 som_confirmar = carregar_som("sons/confirmar.wav", VOLUME_CONFIRMAR)
 som_armadilha = carregar_som("sons/armadilha.wav", VOLUME_ARMADILHA)
 som_vitoria = carregar_som("sons/vitoria.wav", VOLUME_VITORIA)
+som_vulto = carregar_som("sons/vulto.wav", VOLUME_VULTO)
+som_lamparina = carregar_som("sons/lamparina.wav", VOLUME_LAMPARINA)
+som_sussurro = carregar_som("sons/sussurro.wav", VOLUME_SUSSURRO)
+som_chiado = carregar_som("sons/chiado.wav", VOLUME_CHIADO)
+som_mordida = carregar_som("sons/mordida.wav", VOLUME_MORDIDA)
 
+img_susto = img_caninana_cabeca
+inicio_assombro = 0
+lado_assombro = 1
 reiniciar()
 inicio_susto = 0
 dir_x = 0
@@ -287,7 +354,7 @@ while rodando:
         if estado_jogo == MENU:
             telas.desenhar_menu(tela, agora - inicio_menu, quadros_logo, opcao, retangulos_opcoes)
         elif estado_jogo == SUSTO:
-            telas.desenhar_susto(tela, agora - inicio_susto, img_cabeca)
+            telas.desenhar_susto(tela, agora - inicio_susto, img_susto)
             if agora - inicio_susto > DURACAO_SUSTO:
                 estado_jogo = GAME_OVER
         elif estado_jogo == PRESO:
@@ -360,7 +427,7 @@ while rodando:
 
     jogador_cx = x + TAMANHO_JOGADOR // 2
     jogador_cy = y + TAMANHO_JOGADOR // 2
-    dist = distancia(jogador_cx, jogador_cy, cabeca_x, cabeca_y)
+    dist_cascavel = distancia(jogador_cx, jogador_cy, cascavel_x, cascavel_y)
     velocidade = distancia(vel_x, vel_y, 0, 0)
 
     linha_jogador = int(jogador_cy // TAMANHO_BLOCO)
@@ -381,55 +448,131 @@ while rodando:
         tempo_travessia = int(agora - inicio_partida)
         pygame.mixer.stop()
         som_vitoria.play()
+    elif mapa[linha_jogador][coluna_jogador] == "A" and bloco_atual not in assombros_usados:
+        if assombro_agendado == NENHUM and assombro_atual == NENHUM:
+            assombros_usados.append(bloco_atual)
+            agendar_assombro(agora)
 
-    if estado_caninana == ESCONDIDA:
-        if dist < DIST_ATENTA:
-            estado_caninana = ATENTA
+    if agora >= proximo_assombro:
+        agendar_assombro(agora)
+        proximo_assombro = agora + random.uniform(INTERVALO_MIN, INTERVALO_MAX)
+
+    if assombro_agendado != NENHUM and agora >= assombro_agendado:
+        assombro_agendado = NENHUM
+        comecar_assombro(agora)
+
+    tempo_assombro = agora - inicio_assombro
+    if assombro_atual != NENHUM and tempo_assombro > DURACOES_ASSOMBRO[assombro_atual]:
+        assombro_atual = NENHUM
+
+    if estado_cascavel == ESCONDIDA:
+        if dist_cascavel < DIST_ATENTA:
+            estado_cascavel = ATENTA
             inicio_atenta = agora
-    elif estado_caninana == ATENTA:
-        if dist > DIST_ATENTA:
-            estado_caninana = ESCONDIDA
-        elif dist < DIST_BOTE and velocidade > VELOCIDADE_SEGURA and agora - inicio_atenta > TEMPO_AVISO:
-            estado_caninana = BOTE
-            dir_x = (jogador_cx - cabeca_x) / dist
-            dir_y = (jogador_cy - cabeca_y) / dist
-            angulo = math.degrees(math.atan2(dir_x, dir_y))
+    elif estado_cascavel == ATENTA:
+        if dist_cascavel > DIST_ATENTA:
+            estado_cascavel = ESCONDIDA
+        elif dist_cascavel < DIST_BOTE and velocidade > VELOCIDADE_SEGURA and agora - inicio_atenta > TEMPO_AVISO:
+            estado_cascavel = BOTE
+            dir_x = (jogador_cx - cascavel_x) / dist_cascavel
+            dir_y = (jogador_cy - cascavel_y) / dist_cascavel
+            angulo_cascavel = math.degrees(math.atan2(dir_x, dir_y))
             som_bote.play()
-    elif estado_caninana == BOTE:
-        corpo.insert(0, (cabeca_x, cabeca_y))
-        cabeca_x += dir_x * VELOCIDADE_BOTE
-        cabeca_y += dir_y * VELOCIDADE_BOTE
-        if distancia(jogador_cx, jogador_cy, cabeca_x, cabeca_y) < DIST_MORDIDA:
-            estado_jogo = SUSTO
-            inicio_susto = agora
-            mensagem_fim = "A caninana te pegou."
-            pygame.mixer.stop()
-            som_susto.play()
-        elif len(corpo) * VELOCIDADE_BOTE >= ALCANCE_BOTE:
-            estado_caninana = RECUA
-    elif estado_caninana == RECUA:
-        if len(corpo) > 0:
-            cabeca_x, cabeca_y = corpo.pop(0)
+    elif estado_cascavel == BOTE:
+        corpo_cascavel.insert(0, (cascavel_x, cascavel_y))
+        cascavel_x += dir_x * VELOCIDADE_BOTE
+        cascavel_y += dir_y * VELOCIDADE_BOTE
+        if distancia(jogador_cx, jogador_cy, cascavel_x, cascavel_y) < DIST_MORDIDA:
+            if agora < fim_veneno:
+                estado_jogo = SUSTO
+                inicio_susto = agora
+                img_susto = img_cascavel_cabeca
+                mensagem_fim = "O veneno da cascavel te venceu."
+                pygame.mixer.stop()
+                som_susto.play()
+            else:
+                fim_veneno = agora + TEMPO_VENENO
+                inicio_mordida = agora
+                estado_cascavel = RECUA
+                som_mordida.play()
+        elif len(corpo_cascavel) * VELOCIDADE_BOTE >= ALCANCE_BOTE:
+            estado_cascavel = RECUA
+    elif estado_cascavel == RECUA:
+        if len(corpo_cascavel) > 0:
+            cascavel_x, cascavel_y = corpo_cascavel.pop(0)
         else:
-            estado_caninana = ESCONDIDA
+            estado_cascavel = ESCONDIDA
 
-    if estado_caninana == ATENTA:
-        som_chiado.set_volume(VOLUME_CHIADO * (1 - dist / DIST_ATENTA))
+    if estado_cascavel == ATENTA:
+        som_chocalho.set_volume(VOLUME_CHOCALHO * (1 - dist_cascavel / DIST_ATENTA))
     else:
-        som_chiado.set_volume(0)
+        som_chocalho.set_volume(0)
 
+    dist_caninana = distancia(jogador_cx, jogador_cy, caninana_x, caninana_y)
+    if velocidade > VELOCIDADE_SEGURA and dist_caninana < DIST_OUVIR:
+        if estado_caninana == PATRULHA:
+            som_bote.play()
+        estado_caninana = PERSEGUINDO
+        fim_perseguicao = agora + TEMPO_PERSEGUICAO
+    elif estado_caninana == PERSEGUINDO and agora > fim_perseguicao:
+        estado_caninana = PATRULHA
+
+    if estado_caninana == PERSEGUINDO:
+        alvo_x = jogador_cx
+        alvo_y = jogador_cy
+        passo = VELOCIDADE_PERSEGUICAO
+    else:
+        alvo_x, alvo_y = centro_do_bloco(ROTA_CANINANA[ponto_rota])
+        passo = VELOCIDADE_CANINANA
+        if distancia(caninana_x, caninana_y, alvo_x, alvo_y) < passo:
+            ponto_rota = (ponto_rota + 1) % len(ROTA_CANINANA)
+
+    falta = distancia(caninana_x, caninana_y, alvo_x, alvo_y)
+    if falta > 0:
+        mov_x = (alvo_x - caninana_x) / falta * passo
+        mov_y = (alvo_y - caninana_y) / falta * passo
+        caninana_x += mov_x
+        caninana_y += mov_y
+        angulo_caninana = math.degrees(math.atan2(mov_x, mov_y))
+    rastro.insert(0, (caninana_x, caninana_y))
+    if len(rastro) > TAMANHO_RASTRO * ESPACO_RASTRO:
+        rastro.pop()
+
+    if dist_caninana < DIST_TOQUE:
+        estado_jogo = SUSTO
+        inicio_susto = agora
+        img_susto = img_caninana_cabeca
+        mensagem_fim = "A caninana te pegou."
+        pygame.mixer.stop()
+        som_susto.play()
+
+    som_chiado.set_volume(VOLUME_CHIADO * max(0, 1 - dist_caninana / DIST_SOM_CANINANA))
+
+    perigo = min(dist_cascavel, dist_caninana)
     alvo = RAIO_LUZ
-    if dist < DIST_MEDO:
-        alvo = RAIO_MIN + (RAIO_LUZ - RAIO_MIN) * dist / DIST_MEDO
+    if perigo < DIST_MEDO:
+        alvo = RAIO_MIN + (RAIO_LUZ - RAIO_MIN) * perigo / DIST_MEDO
+    if agora < fim_veneno:
+        alvo = min(alvo, RAIO_VENENO)
     raio_luz += (alvo - raio_luz) * SUAVIZACAO
 
-    atacando = estado_caninana == BOTE or estado_caninana == RECUA
+    atacando = estado_cascavel == BOTE or estado_cascavel == RECUA
 
     tela.fill(COR_FUNDO)
     desenhar_mapa()
     if not atacando:
-        desenhar_caninana()
+        desenhar_cascavel()
+    desenhar_caninana()
     tela.blit(imagens_jogador[direcao][quadro], (int(x), int(y)))
+
+    if assombro_atual == VULTO:
+        progresso = tempo_assombro / DURACOES_ASSOMBRO[VULTO]
+        vulto_x = jogador_cx + lado_assombro * (DIST_VULTO - 2 * DIST_VULTO * progresso)
+        telas.desenhar_vulto(tela, vulto_x, jogador_cy + DESVIO_VULTO_Y)
+
+    raio_desenho = raio_luz
+    if assombro_atual == LAMPARINA:
+        raio_desenho = raio_luz * random.uniform(FATOR_LUZ_MIN, FATOR_LUZ_MAX)
 
     if tempo_pulso < DURACAO_PULSO:
         sombra.set_alpha(int(ESCURIDAO * tempo_pulso / DURACAO_PULSO))
@@ -437,11 +580,13 @@ while rodando:
         sombra.set_alpha(ESCURIDAO)
     centro = (int(jogador_cx), int(jogador_cy))
     sombra.fill(COR_SOMBRA)
-    pygame.draw.circle(sombra, COR_BURACO, centro, int(raio_luz))
+    pygame.draw.circle(sombra, COR_BURACO, centro, int(raio_desenho))
     tela.blit(sombra, (0, 0))
 
     if atacando:
-        desenhar_caninana()
+        desenhar_cascavel()
+    if agora - inicio_mordida < DURACAO_FLASH_MORDIDA:
+        tela.fill(COR_MORDIDA)
     telas.desenhar_barra(tela, carga)
     pygame.display.flip()
     relogio.tick(FPS)

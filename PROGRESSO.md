@@ -19,7 +19,9 @@ Entrega: 1 de dezembro de 2026.
 - Etapa 4.2 pronta: chegar no `S` dá vitória, com amanhecer, som de vitória e o tempo da travessia.
 - Marco da Fase 4 quase atingido: já dá para jogar uma fase completa do menu até a vitória ou a derrota.
 - Código dividido em 3 arquivos: `main.py` (loop, jogador, caninana, mapa), `config.py` (todas as constantes) e `telas.py` (desenho das telas e da barra).
-- Próxima: Fase 4, etapa 4.3b (galo à meia-noite e presságios básicos).
+- Etapa 4.3b pronta: assombros (sustos que não matam) em pontos `A` do mapa e por tempo, sorteados sem repetir.
+- Duas cobras: a cascavel (verde) faz a tocaia e o bote com veneno; a caninana anda pelo mapa, persegue quando ouve e mata se encostar.
+- Próxima: Fase 4, etapa 4.3c (mais assombros e presságios).
 
 ## Fases e etapas
 
@@ -47,7 +49,8 @@ Entrega: 1 de dezembro de 2026.
 - [x] 4.1 Armadilha com mini-missão
 - [x] 4.2 Saída, vitória e estados do jogo
 - [x] 4.3a Tela inicial: logo animada, som de abertura e menu JOGAR e SAIR
-- [ ] 4.3b Galo à meia-noite e presságios básicos
+- [x] 4.3b Assombros (parte 1): vulto, lamparina e sussurro
+- [ ] 4.3c Assombros (parte 2): mais tipos, galo à meia-noite e presságios
 
 ### Fase 5: Polimento e defesa (29 e 30/nov)
 - [ ] 5.1 Equilibrar constantes e testar com outra pessoa
@@ -65,7 +68,7 @@ Entrega: 1 de dezembro de 2026.
 ## Decisões
 
 - Nome do jogo: Cocal.
-- Perigo principal: caninana (cascavel como extra).
+- Perigos: cascavel (tocaia, bote e veneno) e caninana (anda pelo mapa e persegue quando ouve). A cascavel saiu dos extras da Fase 6.
 - Objetivo: atravessar a mata do Cocal escura, passando por todos os obstáculos e monstros, até a saída.
 - Mapa: 20 colunas x 15 linhas, blocos de 40 px, cada linha é um texto (`mapa[linha][coluna]`). Início em linha 1, coluna 1. Saída no canto de baixo à direita.
 - Colisão: testa os 4 cantos do jogador, eixo x e eixo y separados (assim ele desliza encostado na parede).
@@ -86,6 +89,15 @@ Entrega: 1 de dezembro de 2026.
 - Estados do jogo: MENU, JOGANDO, PRESO, SUSTO, GAME_OVER e VITORIA.
 - Som provisório: sons/vitoria.wav (passarinhos, galo e vento).
 - Organização: constantes no `config.py`, importadas com `from config import *` (os nomes continuam iguais). Telas no `telas.py`, chamadas com `telas.nome_da_funcao(...)`. As funções do `telas.py` recebem por parâmetro o que precisam (`tela`, `forca`, `mensagem`...), porque o `global` só funciona dentro do próprio arquivo. As fontes são criadas em `telas.carregar_fontes()`, depois do `pygame.init()`.
+- Assombros: sustos que não matam (o nome evita confusão com o estado `SUSTO` da caninana). Tipos numa lista (`TIPOS_ASSOMBRO`): VULTO (figura escura cruza a luz), LAMPARINA (a luz treme e quase apaga) e SUSSURRO (voz só no fone esquerdo ou direito, com `canal.set_volume(esq, dir)`). Disparam ao pisar num `A` (cada um uma vez) ou a cada 20 a 45 s sorteados. Atraso aleatório de 0,3 a 1,5 s antes de começar. Sorteio sem repetir: `random.shuffle` numa cópia da lista e `pop`; ao reabastecer, o primeiro nunca é igual ao último. Um assombro por vez (`NENHUM = -1` quando não há).
+- Sons provisórios: sons/vulto.wav, sons/lamparina.wav, sons/sussurro.wav (trocar pela minha voz).
+- Troca de papéis: a cobra de tocaia (estados ESCONDIDA, ATENTA, BOTE, RECUA) virou a cascavel, com sprites verdes e aviso de chocalho. Variáveis renomeadas: `estado_cascavel`, `cascavel_x`, `corpo_cascavel`, `dist_cascavel`, `CASCAVEL_LINHA`...
+- Veneno: a 1ª mordida da cascavel não mata. Tela pisca vermelho, `fim_veneno = agora + TEMPO_VENENO` e a luz fica em `RAIO_VENENO`. Uma 2ª mordida antes do fim do veneno é game over.
+- Caninana: estados PATRULHA e PERSEGUINDO. Na patrulha vai de ponto em ponto da lista `ROTA_CANINANA` (com `% len` volta ao primeiro). Se o jogador estiver rápido (acima de `VELOCIDADE_SEGURA`) e a menos de `DIST_OUVIR`, ela persegue por `TEMPO_PERSEGUICAO` segundos. Anda em linha reta, atravessando o mato. O corpo é a lista `rastro` com as posições antigas da cabeça, desenhando um segmento a cada `ESPACO_RASTRO`. Encostar (`DIST_TOQUE`) é game over. O chiado aumenta com a proximidade.
+- A luz diminui pelo perigo mais perto: `perigo = min(dist_cascavel, dist_caninana)`.
+- `VELOCIDADE_SEGURA` subiu para 2.2: andando devagar na diagonal a velocidade é √(1,5² + 1,5²) ≈ 2,12, e com 2 isso contava como barulho.
+- Teste: com cuidado (esperar a caninana passar antes de cruzar a linha 10 e usar SHIFT perto das cobras) dá para vencer; correndo, ela pega.
+- Sons e sprites provisórios: sons/chocalho.wav, sons/mordida.wav, sprites/cascavel_*.png (cores trocadas dos sprites da caninana).
 - Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
 - Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
@@ -118,8 +130,8 @@ Entrega: 1 de dezembro de 2026.
 | Volumes | `VOLUME_...` (0 a 1) | config.py |
 | Tela cheia ou janela | `TELA_CHEIA` (True ou False) | config.py |
 | Velocidade andando devagar (SHIFT) | `VELOCIDADE_DEVAGAR` | config.py |
-| Onde a caninana fica | `CANINANA_LINHA` e `CANINANA_COLUNA` | config.py |
-| Distância em que ela fica atenta (chiado) | `DIST_ATENTA` | config.py |
+| Onde a cascavel fica | `CASCAVEL_LINHA` e `CASCAVEL_COLUNA` | config.py |
+| Distância em que a cascavel fica atenta (chocalho) | `DIST_ATENTA` | config.py |
 | Distância do bote | `DIST_BOTE` | config.py |
 | Velocidade que não provoca bote | `VELOCIDADE_SEGURA` | config.py |
 | Tempo de aviso antes do bote | `TEMPO_AVISO` | config.py |
@@ -136,6 +148,21 @@ Entrega: 1 de dezembro de 2026.
 | Posição da logo e das opções | `LOGO_Y`, `OPCAO_Y`, `ESPACO_OPCOES` | config.py |
 | Textos do menu | `OPCOES_MENU` | config.py |
 | Cores do menu | `COR_OPCAO`, `COR_OPCAO_SELECIONADA` | config.py |
+| Onde ficam os pontos de assombro | letra `A` no `mapa` | main.py |
+| Tipos de assombro e duração | `TIPOS_ASSOMBRO`, `DURACOES_ASSOMBRO` | config.py |
+| Atraso antes do assombro | `ATRASO_MIN`, `ATRASO_MAX` | config.py |
+| Intervalo dos assombros por tempo | `INTERVALO_MIN`, `INTERVALO_MAX` | config.py |
+| Vulto (distância, tamanho, cor) | `DIST_VULTO`, `DESVIO_VULTO_Y`, `TAMANHO_VULTO`, `COR_VULTO` | config.py |
+| Quanto a lamparina apaga | `FATOR_LUZ_MIN`, `FATOR_LUZ_MAX` | config.py |
+| Volumes dos assombros | `VOLUME_VULTO`, `VOLUME_LAMPARINA`, `VOLUME_SUSSURRO` | config.py |
+| Rota da caninana | `ROTA_CANINANA` (lista de [linha, coluna]) | config.py |
+| Velocidade da caninana (patrulha e perseguição) | `VELOCIDADE_CANINANA`, `VELOCIDADE_PERSEGUICAO` | config.py |
+| Distância em que a caninana ouve | `DIST_OUVIR` | config.py |
+| Tempo de perseguição | `TEMPO_PERSEGUICAO` | config.py |
+| Distância que conta como encostar | `DIST_TOQUE` | config.py |
+| Tamanho do corpo da caninana | `TAMANHO_RASTRO`, `ESPACO_RASTRO` | config.py |
+| Veneno (luz e duração) | `RAIO_VENENO`, `TEMPO_VENENO` | config.py |
+| Piscada vermelha da mordida | `DURACAO_FLASH_MORDIDA`, `COR_MORDIDA` | config.py |
 | Onde fica a saída | letra `S` no `mapa` | main.py |
 | Tempo do amanhecer na vitória | `TEMPO_AMANHECER` (segundos) | config.py |
 | Cor do amanhecer | `COR_AMANHECER` | config.py |
