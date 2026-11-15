@@ -83,6 +83,11 @@ SUSTO = 1
 GAME_OVER = 2
 MENU = 3
 PRESO = 4
+VITORIA = 5
+
+TEMPO_AMANHECER = 4
+COR_AMANHECER = (90, 60, 50)
+VOLUME_VITORIA = 0.8
 
 FORCA_PARA_SOLTAR = 12
 TEMPO_ARMADILHA = 6
@@ -246,6 +251,18 @@ def desenhar_game_over():
     desenhar_centro(dica, LARGURA // 2, ALTURA // 2 + ESPACO_LINHAS)
 
 
+def desenhar_vitoria(tempo):
+    claridade = min(tempo / TEMPO_AMANHECER, 1)
+    cor = (int(COR_AMANHECER[0] * claridade), int(COR_AMANHECER[1] * claridade), int(COR_AMANHECER[2] * claridade))
+    tela.fill(cor)
+    texto = fonte.render("Você atravessou o Cocal.", True, COR_TEXTO)
+    marca = fonte_pequena.render("Tempo: " + str(tempo_travessia) + " segundos", True, COR_TEXTO)
+    dica = fonte_pequena.render("ENTER para jogar de novo, ESC para o menu", True, COR_TEXTO)
+    desenhar_centro(texto, LARGURA // 2, ALTURA // 2 - ESPACO_LINHAS)
+    desenhar_centro(marca, LARGURA // 2, ALTURA // 2)
+    desenhar_centro(dica, LARGURA // 2, ALTURA // 2 + ESPACO_LINHAS)
+
+
 def desenhar_barra_missao(barra_y, proporcao, cor):
     barra_x = LARGURA // 2 - MISSAO_LARGURA // 2
     pygame.draw.rect(tela, COR_BARRA_FUNDO, (barra_x, barra_y, MISSAO_LARGURA, MISSAO_ALTURA))
@@ -301,7 +318,7 @@ def reiniciar():
     global x, y, vel_x, vel_y, direcao, quadro, contador
     global ultimo_pulso, avisou_recarga, raio_luz, estado_jogo
     global estado_caninana, cabeca_x, cabeca_y, corpo, inicio_atenta, angulo
-    global armadilhas_usadas, mensagem_fim
+    global armadilhas_usadas, mensagem_fim, inicio_partida
 
     margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
     x = COLUNA_INICIAL * TAMANHO_BLOCO + margem
@@ -326,6 +343,7 @@ def reiniciar():
 
     armadilhas_usadas = []
     mensagem_fim = ""
+    inicio_partida = pygame.time.get_ticks() / 1000
 
     pygame.mixer.stop()
     som_ambiente.play(loops=-1)
@@ -380,6 +398,7 @@ som_intro = carregar_som("sons/intro.wav", VOLUME_INTRO)
 som_navegar = carregar_som("sons/navegar.wav", VOLUME_NAVEGAR)
 som_confirmar = carregar_som("sons/confirmar.wav", VOLUME_CONFIRMAR)
 som_armadilha = carregar_som("sons/armadilha.wav", VOLUME_ARMADILHA)
+som_vitoria = carregar_som("sons/vitoria.wav", VOLUME_VITORIA)
 
 reiniciar()
 inicio_susto = 0
@@ -388,6 +407,8 @@ dir_y = 0
 inicio_preso = 0
 forca = 0
 ultima_puxada = -1
+inicio_vitoria = 0
+tempo_travessia = 0
 abrir_menu()
 
 rodando = True
@@ -427,7 +448,7 @@ while rodando:
         elif evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_ESCAPE:
                 abrir_menu()
-            elif evento.key == pygame.K_RETURN and estado_jogo == GAME_OVER:
+            elif evento.key == pygame.K_RETURN and (estado_jogo == GAME_OVER or estado_jogo == VITORIA):
                 reiniciar()
             elif evento.key == pygame.K_SPACE and estado_jogo == JOGANDO:
                 if tempo_pulso >= RECARGA_PULSO:
@@ -468,6 +489,8 @@ while rodando:
                 mensagem_fim = "Você não conseguiu se soltar do laço."
                 estado_jogo = GAME_OVER
                 pygame.mixer.stop()
+        elif estado_jogo == VITORIA:
+            desenhar_vitoria(agora - inicio_vitoria)
         else:
             desenhar_game_over()
         pygame.display.flip()
@@ -543,6 +566,12 @@ while rodando:
         vel_x = 0
         vel_y = 0
         som_armadilha.play()
+    elif mapa[linha_jogador][coluna_jogador] == "S":
+        estado_jogo = VITORIA
+        inicio_vitoria = agora
+        tempo_travessia = int(agora - inicio_partida)
+        pygame.mixer.stop()
+        som_vitoria.play()
 
     if estado_caninana == ESCONDIDA:
         if dist < DIST_ATENTA:

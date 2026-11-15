@@ -31,5 +31,5 @@ Jogo:
 - SHIFT: andar devagar
 - ESPAÇO: pulso
 - ESQUERDA e DIREITA alternadas: soltar o pé do laço
-- ENTER: tentar de novo (na tela de game over)
+- ENTER: jogar de novo (no game over e na vitória)
 - ESC: voltar ao menu

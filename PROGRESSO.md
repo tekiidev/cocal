@@ -16,7 +16,9 @@ Entrega: 1 de dezembro de 2026.
 - Tela cheia ligada (TELA_CHEIA). No jogo, ESC volta ao menu. No menu, ESC fecha.
 - Perguntas de verificação pendentes: Fases 1, 2 e 3 (estudar).
 - Etapa 4.1 pronta: laço de caçador no `T` com mini-missão (alternar ESQUERDA e DIREITA).
-- Próxima: Fase 4, etapa 4.2 (saída, vitória e estados do jogo).
+- Etapa 4.2 pronta: chegar no `S` dá vitória, com amanhecer, som de vitória e o tempo da travessia.
+- Marco da Fase 4 quase atingido: já dá para jogar uma fase completa do menu até a vitória ou a derrota.
+- Próxima: Fase 4, etapa 4.3b (galo à meia-noite e presságios básicos).
 
 ## Fases e etapas
 
@@ -42,7 +44,7 @@ Entrega: 1 de dezembro de 2026.
 
 ### Fase 4: Jogo completo (26 a 28/nov)
 - [x] 4.1 Armadilha com mini-missão
-- [ ] 4.2 Saída, vitória e estados do jogo
+- [x] 4.2 Saída, vitória e estados do jogo
 - [x] 4.3a Tela inicial: logo animada, som de abertura e menu JOGAR e SAIR
 - [ ] 4.3b Galo à meia-noite e presságios básicos
 
@@ -79,6 +81,9 @@ Entrega: 1 de dezembro de 2026.
 - Sons provisórios do menu: sons/intro.wav (ronco, vento e sino), sons/navegar.wav, sons/confirmar.wav.
 - Controles: setas ou WASD, SHIFT devagar, ESPAÇO pulso, ENTER recomeça, ESC volta ao menu (no menu, ESC sai). Velocidade negativa = esquerda ou cima.
 - Armadilha: laço de caçador. Novo estado `PRESO`. Cada puxada alternada (ESQUERDA depois DIREITA) soma 1 em `forca`; repetir a mesma tecla não conta. Solta com `FORCA_PARA_SOLTAR` puxadas antes de `TEMPO_ARMADILHA` segundos, senão é game over. Cada laço só prende uma vez (lista `armadilhas_usadas`, zerada no `reiniciar()`).
+- Vitória: novo estado `VITORIA`. Detectada como o laço, pelo bloco do centro do jogador (`elif ... == "S"`). A tela vai do preto até `COR_AMANHECER` em `TEMPO_AMANHECER` segundos, multiplicando cada parte da cor pela `claridade` (0 a 1). Mostra `tempo_travessia` (segundos desde o `inicio_partida`, que é guardado no `reiniciar()`). ENTER joga de novo.
+- Estados do jogo: MENU, JOGANDO, PRESO, SUSTO, GAME_OVER e VITORIA.
+- Som provisório: sons/vitoria.wav (passarinhos, galo e vento).
 - Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
 - Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
@@ -129,6 +134,11 @@ Entrega: 1 de dezembro de 2026.
 | Posição da logo e das opções | `LOGO_Y`, `OPCAO_Y`, `ESPACO_OPCOES` | main.py |
 | Textos do menu | `OPCOES_MENU` | main.py |
 | Cores do menu | `COR_OPCAO`, `COR_OPCAO_SELECIONADA` | main.py |
+| Onde fica a saída | letra `S` no `mapa` | main.py |
+| Tempo do amanhecer na vitória | `TEMPO_AMANHECER` (segundos) | main.py |
+| Cor do amanhecer | `COR_AMANHECER` | main.py |
+| Texto da vitória | `desenhar_vitoria()` | main.py |
+| Volume da vitória | `VOLUME_VITORIA` | main.py |
 | Puxadas para soltar do laço | `FORCA_PARA_SOLTAR` | main.py |
 | Tempo para soltar do laço | `TEMPO_ARMADILHA` (segundos) | main.py |
 | Onde ficam as armadilhas | letra `T` no `mapa` | main.py |
