@@ -25,6 +25,24 @@ mapa = [
     "####################",
 ]
 
+decoracao = [
+    "PMM.PPMM.M...MPMP.M.",
+    "M.......RRR..M.....M",
+    "M....M.MM.PM.M.PPP.M",
+    ".....P.M.......P....",
+    "M....M.M...MM..M..P.",
+    "P........P.....M....",
+    "P.PM..MM.PM..M.PPM..",
+    "M...RRRM...........M",
+    "MPMP.MRPMMMM.PMP.P..",
+    "M....B.PRRR....B.B.M",
+    "..MB.B.PR.R..M.P.M.B",
+    "P.M......B...B...P.B",
+    "M.B.BBBBB..B.BBBMM.B",
+    "...................B",
+    "MP..P.P.MMM.PMPPMMMP",
+]
+
 
 def limitar(valor, limite):
     if valor > limite:
@@ -40,7 +58,7 @@ def carregar_jogador(direcao):
     return [quadro_0, quadro_1]
 
 
-def desenhar_mapa():
+def desenhar_mapa(superficie):
     for linha in range(len(mapa)):
         for coluna in range(len(mapa[linha])):
             bloco = mapa[linha][coluna]
@@ -53,13 +71,39 @@ def desenhar_mapa():
             else:
                 cor = COR_TRILHA
             quadrado = (coluna * TAMANHO_BLOCO, linha * TAMANHO_BLOCO, TAMANHO_BLOCO, TAMANHO_BLOCO)
-            pygame.draw.rect(tela, cor, quadrado)
+            pygame.draw.rect(superficie, cor, quadrado)
             centro_x = coluna * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
             if bloco == "L":
-                telas.desenhar_centro(tela, img_lapide, centro_x, linha * TAMANHO_BLOCO + TAMANHO_BLOCO // 2)
+                telas.desenhar_centro(superficie, img_lapide, centro_x, linha * TAMANHO_BLOCO + TAMANHO_BLOCO // 2)
             elif bloco == "+":
                 base = (linha + 1) * TAMANHO_BLOCO
-                tela.blit(img_cruz, (centro_x - img_cruz.get_width() // 2, base - img_cruz.get_height()))
+                superficie.blit(img_cruz, (centro_x - img_cruz.get_width() // 2, base - img_cruz.get_height()))
+
+    for linha in range(len(decoracao)):
+        for coluna in range(len(decoracao[linha])):
+            item = decoracao[linha][coluna]
+            variacao = (linha + coluna) % 2
+            centro_x, centro_y = centro_do_bloco([linha, coluna])
+            if item == "P":
+                telas.desenhar_centro(superficie, imgs_palmeira[variacao], centro_x, centro_y)
+            elif item == "M":
+                telas.desenhar_centro(superficie, imgs_mata[variacao], centro_x, centro_y)
+            elif item == "B":
+                telas.desenhar_centro(superficie, imgs_bananeira[variacao], centro_x, centro_y)
+
+
+def desenhar_arroz(agora):
+    for linha in range(len(decoracao)):
+        for coluna in range(len(decoracao[linha])):
+            if decoracao[linha][coluna] == "R":
+                centro_x, centro_y = centro_do_bloco([linha, coluna])
+                balanco = math.sin(agora * VELOCIDADE_BALANCO + coluna) * BALANCO_ARROZ
+                telas.desenhar_centro(tela, imgs_arroz[(linha + coluna) % 2], centro_x + balanco, centro_y)
+
+
+def carregar_com_espelho(arquivo):
+    imagem = pygame.image.load(arquivo).convert_alpha()
+    return [imagem, pygame.transform.flip(imagem, True, False)]
 
 
 def eh_parede(px, py):
@@ -295,6 +339,10 @@ som_chiado = carregar_som("sons/chiado.wav", VOLUME_CHIADO)
 som_mordida = carregar_som("sons/mordida.wav", VOLUME_MORDIDA)
 som_grito = carregar_som("sons/grito.wav", VOLUME_GRITO)
 img_rosto = pygame.image.load("sprites/cara.png").convert_alpha()
+imgs_palmeira = carregar_com_espelho("sprites/palmeira.png")
+imgs_mata = carregar_com_espelho("sprites/mata.png")
+imgs_bananeira = carregar_com_espelho("sprites/bananeira.png")
+imgs_arroz = carregar_com_espelho("sprites/arroz.png")
 img_lapide = pygame.image.load("sprites/lapide.png").convert_alpha()
 img_cruz = pygame.image.load("sprites/cruz.png").convert_alpha()
 img_mulher = pygame.image.load("sprites/mulher.png").convert_alpha()
@@ -304,6 +352,9 @@ img_mulher_mao = pygame.image.load("sprites/mulher_mao.png").convert_alpha()
 som_lamento = carregar_som("sons/lamento.wav", VOLUME_LAMENTO)
 som_grito_mulher = carregar_som("sons/grito_mulher.wav", VOLUME_GRITO_MULHER)
 inicio_susto_mulher = 0
+
+cenario = pygame.Surface((LARGURA, ALTURA))
+desenhar_mapa(cenario)
 rosto_mostrado = False
 inicio_rosto = 0
 
@@ -627,12 +678,12 @@ while rodando:
 
     atacando = estado_cascavel == BOTE or estado_cascavel == RECUA
 
-    tela.fill(COR_FUNDO)
-    desenhar_mapa()
+    tela.blit(cenario, (0, 0))
     if not atacando:
         desenhar_cascavel()
     desenhar_caninana()
     tela.blit(imagens_jogador[direcao][quadro], (int(x), int(y)))
+    desenhar_arroz(agora)
 
     if assombro_atual == VULTO:
         progresso = tempo_assombro / DURACOES_ASSOMBRO[VULTO]

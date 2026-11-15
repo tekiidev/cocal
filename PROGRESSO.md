@@ -106,6 +106,9 @@ Entrega: 1 de dezembro de 2026.
 - Susto da mulher (`telas.desenhar_susto_mulher`): flash; a cara avança (zoom até `ZOOM_MULHER_MEIO` em `TEMPO_AVANCO`) e continua crescendo para fora da tela (`CRESCIMENTO_MULHER`); dois braços finos (linhas) saem de baixo do queixo, sobem até cotovelos no alto (`COTOVELO_X`, `COTOVELO_Y`) e descem até as mãos, que agarram as bordas (`MAO_ESQUERDA_Y`, `MAO_DIREITA_Y`). A mão direita é a esquerda espelhada (`pygame.transform.flip`).
 - Nova função `andar_ate(px, py, alvo_x, alvo_y, passo)`: anda um passo em direção ao alvo sem passar dele. Usada pela mulher.
 - Sprites e sons provisórios: sprites/mulher.png, mulher_rosto.png, mulher_mao.png, cruz.png, lapide.png; sons/lamento.wav, sons/grito_mulher.wav.
+- Ambientação: segunda matriz `decoracao` (15 x 20, igual ao mapa), separada do `mapa`. Letras: `P` palmeira de babaçu, `M` mata, `B` bananeira (na parte das cobras, linhas 9 a 13), `R` arroz alto (nas trilhas em volta dos pontos do vulto), `.` nada. Palmeira, mata e bananeira ficam no mato; o arroz fica em cima da trilha e é desenhado depois do jogador (ele some na palha) e balança com `math.sin`. Cada planta tem a imagem normal e a espelhada (`carregar_com_espelho`), escolhida por `(linha + coluna) % 2`, para não parecerem todas iguais.
+- Desempenho: o cenário (chão, mato, lápides, cruz e plantas) é desenhado uma vez só na imagem `cenario`, antes do loop, e a cada quadro só é colado com `tela.blit(cenario, (0, 0))`. Caiu de 18 ms para 4 ms por quadro. O arroz continua sendo desenhado a cada quadro porque balança.
+- Sprites provisórios: sprites/palmeira.png, mata.png, bananeira.png, arroz.png.
 - Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
 - Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
@@ -183,6 +186,8 @@ Entrega: 1 de dezembro de 2026.
 | Susto da mulher (tempo, zoom, tremor) | `DURACAO_SUSTO_MULHER`, `TEMPO_AVANCO`, `ZOOM_MULHER_INICIAL`, `ZOOM_MULHER_MEIO`, `CRESCIMENTO_MULHER`, `TREMOR_MULHER` | config.py |
 | Braços e mãos do susto | `TEMPO_BRACOS`, `COTOVELO_X`, `COTOVELO_Y`, `MAO_ESQUERDA_Y`, `MAO_DIREITA_Y`, `ESCALA_MAO`, `GROSSURA_BRACO`, `COR_BRACO` | config.py |
 | Volumes da mulher | `VOLUME_LAMENTO`, `VOLUME_GRITO_MULHER` | config.py |
+| Onde ficam palmeiras, matas, bananeiras e arroz | letras da matriz `decoracao` | main.py |
+| Quanto o arroz balança | `BALANCO_ARROZ`, `VELOCIDADE_BALANCO` | config.py |
 | Onde fica a saída | letra `S` no `mapa` | main.py |
 | Tempo do amanhecer na vitória | `TEMPO_AMANHECER` (segundos) | config.py |
 | Cor do amanhecer | `COR_AMANHECER` | config.py |
