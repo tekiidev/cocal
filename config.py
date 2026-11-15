@@ -232,8 +232,9 @@ TEXTO_HISTORIA = [
     "matava os cachorro, as vaca, até quem morava no meio do mato.",
     "",
     "De noite, no Cocal do João Rufino, a gente escuta mais do que vê",
-    "ou às vezes vê coisa até demais. E reza se for à pé pro Bar da Oneide"
-    "passando pelo cemitério...",
+    "ou às vezes vê coisa até demais.",
+    "E reza se for à pé pro Bar da Oneide",
+    "vai ter que passar pelo cemitério..."
 ]
 TITULO_AVISO = "Antes de entrar na mata"
 TEXTO_AVISO = [
