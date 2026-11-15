@@ -1,16 +1,20 @@
 import os
+import math
+import random
 import pygame
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 LARGURA = 800
 ALTURA = 600
+TELA_CHEIA = True
 FPS = 60
 COR_FUNDO = (0, 0, 0)
 
 ACELERACAO = 0.8
 ATRITO = 0.92
 VELOCIDADE_MAX = 5
+VELOCIDADE_DEVAGAR = 1.5
 
 QUADROS_POR_PASSO = 10
 VEL_MIN_ANIMACAO = 0.5
@@ -50,6 +54,44 @@ VOLUME_AMBIENTE = 0.4
 VOLUME_PASSO = 0.3
 VOLUME_PULSO = 0.8
 VOLUME_RECARGA = 0.5
+VOLUME_CHIADO = 0.6
+VOLUME_BOTE = 0.8
+VOLUME_SUSTO = 1.0
+
+ESCONDIDA = 0
+ATENTA = 1
+BOTE = 2
+RECUA = 3
+
+CANINANA_LINHA = 12
+CANINANA_COLUNA = 15
+DIST_ATENTA = 160
+DIST_BOTE = 90
+VELOCIDADE_SEGURA = 2
+TEMPO_AVISO = 0.6
+VELOCIDADE_BOTE = 12
+ALCANCE_BOTE = 110
+DIST_MORDIDA = 22
+TREMOR_ATENTA = 2
+
+RAIO_MIN = 30
+DIST_MEDO = 200
+SUAVIZACAO = 0.1
+
+JOGANDO = 0
+SUSTO = 1
+GAME_OVER = 2
+
+DURACAO_SUSTO = 1.5
+DURACAO_FLASH = 0.05
+ZOOM_INICIAL = 6
+ZOOM_FINAL = 14
+TREMOR_SUSTO = 15
+COR_FLASH = (255, 255, 255)
+COR_TEXTO = (200, 190, 160)
+TAMANHO_TEXTO = 48
+TAMANHO_TEXTO_PEQUENO = 28
+ESPACO_LINHAS = 60
 
 mapa = [
     "####################",
@@ -127,10 +169,94 @@ def desenhar_barra(carga):
     pygame.draw.rect(tela, cor, (BARRA_X, BARRA_Y, int(BARRA_LARGURA * carga), BARRA_ALTURA))
 
 
+def distancia(ax, ay, bx, by):
+    return ((ax - bx) ** 2 + (ay - by) ** 2) ** 0.5
+
+
+def desenhar_centro(imagem, cx, cy):
+    tela.blit(imagem, (int(cx) - imagem.get_width() // 2, int(cy) - imagem.get_height() // 2))
+
+
+def desenhar_caninana():
+    if estado_caninana == ESCONDIDA:
+        if tempo_pulso < DURACAO_PULSO:
+            desenhar_centro(img_enrolada, casa_x, casa_y)
+    elif estado_caninana == ATENTA:
+        tremor_x = random.randint(-TREMOR_ATENTA, TREMOR_ATENTA)
+        tremor_y = random.randint(-TREMOR_ATENTA, TREMOR_ATENTA)
+        desenhar_centro(img_enrolada, casa_x + tremor_x, casa_y + tremor_y)
+    else:
+        for i in range(len(corpo) - 1, -1, -1):
+            if i % 2 == 0:
+                segmento = img_corpo_amarelo
+            else:
+                segmento = img_corpo_preto
+            desenhar_centro(segmento, corpo[i][0], corpo[i][1])
+        cabeca = pygame.transform.rotate(img_cabeca, angulo)
+        desenhar_centro(cabeca, cabeca_x, cabeca_y)
+
+
+def desenhar_susto(tempo):
+    if tempo < DURACAO_FLASH:
+        tela.fill(COR_FLASH)
+        return
+    tela.fill(COR_FUNDO)
+    zoom = ZOOM_INICIAL + (ZOOM_FINAL - ZOOM_INICIAL) * tempo / DURACAO_SUSTO
+    imagem = pygame.transform.scale_by(img_cabeca, zoom)
+    tremor_x = random.randint(-TREMOR_SUSTO, TREMOR_SUSTO)
+    tremor_y = random.randint(-TREMOR_SUSTO, TREMOR_SUSTO)
+    desenhar_centro(imagem, LARGURA // 2 + tremor_x, ALTURA // 2 + tremor_y)
+
+
+def desenhar_game_over():
+    tela.fill(COR_FUNDO)
+    texto = fonte.render("A caninana te pegou.", True, COR_TEXTO)
+    dica = fonte_pequena.render("ENTER para tentar de novo, ESC para sair", True, COR_TEXTO)
+    desenhar_centro(texto, LARGURA // 2, ALTURA // 2)
+    desenhar_centro(dica, LARGURA // 2, ALTURA // 2 + ESPACO_LINHAS)
+
+
+def reiniciar():
+    global x, y, vel_x, vel_y, direcao, quadro, contador
+    global ultimo_pulso, avisou_recarga, raio_luz, estado_jogo
+    global estado_caninana, cabeca_x, cabeca_y, corpo, inicio_atenta, angulo
+
+    margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
+    x = COLUNA_INICIAL * TAMANHO_BLOCO + margem
+    y = LINHA_INICIAL * TAMANHO_BLOCO + margem
+    vel_x = 0
+    vel_y = 0
+    direcao = BAIXO
+    quadro = 0
+    contador = 0
+
+    ultimo_pulso = pygame.time.get_ticks() / 1000 - RECARGA_PULSO
+    avisou_recarga = True
+    raio_luz = RAIO_LUZ
+    estado_jogo = JOGANDO
+
+    estado_caninana = ESCONDIDA
+    cabeca_x = casa_x
+    cabeca_y = casa_y
+    corpo = []
+    inicio_atenta = 0
+    angulo = 0
+
+    pygame.mixer.stop()
+    som_ambiente.play(loops=-1)
+    som_chiado.set_volume(0)
+    som_chiado.play(loops=-1)
+
+
 pygame.init()
-tela = pygame.display.set_mode((LARGURA, ALTURA))
+if TELA_CHEIA:
+    tela = pygame.display.set_mode((LARGURA, ALTURA), pygame.FULLSCREEN | pygame.SCALED)
+else:
+    tela = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("Cocal")
 relogio = pygame.time.Clock()
+fonte = pygame.font.Font(None, TAMANHO_TEXTO)
+fonte_pequena = pygame.font.Font(None, TAMANHO_TEXTO_PEQUENO)
 
 imagens_jogador = [
     carregar_jogador("baixo"),
@@ -138,26 +264,29 @@ imagens_jogador = [
     carregar_jogador("esquerda"),
     carregar_jogador("direita"),
 ]
-direcao = BAIXO
-quadro = 0
-contador = 0
-margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
-x = COLUNA_INICIAL * TAMANHO_BLOCO + margem
-y = LINHA_INICIAL * TAMANHO_BLOCO + margem
-vel_x = 0
-vel_y = 0
+img_cabeca = pygame.image.load("sprites/caninana_cabeca.png").convert_alpha()
+img_corpo_amarelo = pygame.image.load("sprites/caninana_corpo_amarelo.png").convert_alpha()
+img_corpo_preto = pygame.image.load("sprites/caninana_corpo_preto.png").convert_alpha()
+img_enrolada = pygame.image.load("sprites/caninana_enrolada.png").convert_alpha()
+
+casa_x = CANINANA_COLUNA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
+casa_y = CANINANA_LINHA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
 
 sombra = pygame.Surface((LARGURA, ALTURA))
 sombra.set_colorkey(COR_BURACO)
-
-ultimo_pulso = -RECARGA_PULSO
-avisou_recarga = True
 
 som_passo = carregar_som("sons/passo.wav", VOLUME_PASSO)
 som_pulso = carregar_som("sons/pulso.wav", VOLUME_PULSO)
 som_recarga = carregar_som("sons/recarga.wav", VOLUME_RECARGA)
 som_ambiente = carregar_som("musica/ambiente.wav", VOLUME_AMBIENTE)
-som_ambiente.play(loops=-1)
+som_chiado = carregar_som("sons/chiado.wav", VOLUME_CHIADO)
+som_bote = carregar_som("sons/bote.wav", VOLUME_BOTE)
+som_susto = carregar_som("sons/susto.wav", VOLUME_SUSTO)
+
+reiniciar()
+inicio_susto = 0
+dir_x = 0
+dir_y = 0
 
 rodando = True
 while rodando:
@@ -167,12 +296,28 @@ while rodando:
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             rodando = False
-        elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_SPACE:
-            if tempo_pulso >= RECARGA_PULSO:
-                ultimo_pulso = agora
-                tempo_pulso = 0
-                avisou_recarga = False
-                som_pulso.play()
+        elif evento.type == pygame.KEYDOWN:
+            if evento.key == pygame.K_ESCAPE:
+                rodando = False
+            elif evento.key == pygame.K_RETURN and estado_jogo == GAME_OVER:
+                reiniciar()
+            elif evento.key == pygame.K_SPACE and estado_jogo == JOGANDO:
+                if tempo_pulso >= RECARGA_PULSO:
+                    ultimo_pulso = agora
+                    tempo_pulso = 0
+                    avisou_recarga = False
+                    som_pulso.play()
+
+    if estado_jogo != JOGANDO:
+        if estado_jogo == SUSTO:
+            desenhar_susto(agora - inicio_susto)
+            if agora - inicio_susto > DURACAO_SUSTO:
+                estado_jogo = GAME_OVER
+        else:
+            desenhar_game_over()
+        pygame.display.flip()
+        relogio.tick(FPS)
+        continue
 
     carga = min(tempo_pulso / RECARGA_PULSO, 1)
     if carga >= 1 and not avisou_recarga:
@@ -189,8 +334,11 @@ while rodando:
     if teclas[pygame.K_DOWN] or teclas[pygame.K_s]:
         vel_y += ACELERACAO
 
-    vel_x = limitar(vel_x * ATRITO, VELOCIDADE_MAX)
-    vel_y = limitar(vel_y * ATRITO, VELOCIDADE_MAX)
+    limite = VELOCIDADE_MAX
+    if teclas[pygame.K_LSHIFT] or teclas[pygame.K_RSHIFT]:
+        limite = VELOCIDADE_DEVAGAR
+    vel_x = limitar(vel_x * ATRITO, limite)
+    vel_y = limitar(vel_y * ATRITO, limite)
 
     x += vel_x
     if colide(x, y):
@@ -223,19 +371,70 @@ while rodando:
     else:
         quadro = 0
 
+    jogador_cx = x + TAMANHO_JOGADOR // 2
+    jogador_cy = y + TAMANHO_JOGADOR // 2
+    dist = distancia(jogador_cx, jogador_cy, cabeca_x, cabeca_y)
+    velocidade = distancia(vel_x, vel_y, 0, 0)
+
+    if estado_caninana == ESCONDIDA:
+        if dist < DIST_ATENTA:
+            estado_caninana = ATENTA
+            inicio_atenta = agora
+    elif estado_caninana == ATENTA:
+        if dist > DIST_ATENTA:
+            estado_caninana = ESCONDIDA
+        elif dist < DIST_BOTE and velocidade > VELOCIDADE_SEGURA and agora - inicio_atenta > TEMPO_AVISO:
+            estado_caninana = BOTE
+            dir_x = (jogador_cx - cabeca_x) / dist
+            dir_y = (jogador_cy - cabeca_y) / dist
+            angulo = math.degrees(math.atan2(dir_x, dir_y))
+            som_bote.play()
+    elif estado_caninana == BOTE:
+        corpo.insert(0, (cabeca_x, cabeca_y))
+        cabeca_x += dir_x * VELOCIDADE_BOTE
+        cabeca_y += dir_y * VELOCIDADE_BOTE
+        if distancia(jogador_cx, jogador_cy, cabeca_x, cabeca_y) < DIST_MORDIDA:
+            estado_jogo = SUSTO
+            inicio_susto = agora
+            pygame.mixer.stop()
+            som_susto.play()
+        elif len(corpo) * VELOCIDADE_BOTE >= ALCANCE_BOTE:
+            estado_caninana = RECUA
+    elif estado_caninana == RECUA:
+        if len(corpo) > 0:
+            cabeca_x, cabeca_y = corpo.pop(0)
+        else:
+            estado_caninana = ESCONDIDA
+
+    if estado_caninana == ATENTA:
+        som_chiado.set_volume(VOLUME_CHIADO * (1 - dist / DIST_ATENTA))
+    else:
+        som_chiado.set_volume(0)
+
+    alvo = RAIO_LUZ
+    if dist < DIST_MEDO:
+        alvo = RAIO_MIN + (RAIO_LUZ - RAIO_MIN) * dist / DIST_MEDO
+    raio_luz += (alvo - raio_luz) * SUAVIZACAO
+
+    atacando = estado_caninana == BOTE or estado_caninana == RECUA
+
     tela.fill(COR_FUNDO)
     desenhar_mapa()
+    if not atacando:
+        desenhar_caninana()
     tela.blit(imagens_jogador[direcao][quadro], (int(x), int(y)))
 
     if tempo_pulso < DURACAO_PULSO:
         sombra.set_alpha(int(ESCURIDAO * tempo_pulso / DURACAO_PULSO))
     else:
         sombra.set_alpha(ESCURIDAO)
-    centro = (int(x) + TAMANHO_JOGADOR // 2, int(y) + TAMANHO_JOGADOR // 2)
+    centro = (int(jogador_cx), int(jogador_cy))
     sombra.fill(COR_SOMBRA)
-    pygame.draw.circle(sombra, COR_BURACO, centro, RAIO_LUZ)
+    pygame.draw.circle(sombra, COR_BURACO, centro, int(raio_luz))
     tela.blit(sombra, (0, 0))
 
+    if atacando:
+        desenhar_caninana()
     desenhar_barra(carga)
     pygame.display.flip()
     relogio.tick(FPS)

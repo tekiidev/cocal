@@ -10,8 +10,11 @@ Entrega: 1 de dezembro de 2026.
 - Marco da Fase 1 atingido: andar deslizando por um labirinto.
 - Fase 2 com código pronto (feita de uma vez, a pedido): luz curta, pulso com recarga, barra, sons de ambiente e passos.
 - Marco da Fase 2 atingido: a mata escura com luz e pulso.
-- Perguntas de verificação pendentes: etapas 1.2, 1.3, 1.4, 2.1, 2.2 e 2.3 (estudar).
-- Próxima: Fase 3, etapa 3.1 (caninana parada, com estados).
+- Fase 3 com código pronto (feita de uma vez, a pedido): caninana com estados, bote com corpo, luz que diminui, susto, game over e reinício (ENTER).
+- Marco da Fase 3 atingido: dá para perder e recomeçar.
+- Tela cheia ligada (TELA_CHEIA). ESC fecha o jogo.
+- Perguntas de verificação pendentes: Fases 1, 2 e 3 (estudar).
+- Próxima: Fase 4, etapa 4.1 (armadilha com mini-missão).
 
 ## Fases e etapas
 
@@ -30,10 +33,10 @@ Entrega: 1 de dezembro de 2026.
 - [x] 2.3 Barra de recarga, sons de ambiente e passos
 
 ### Fase 3: Perigo e susto (22 a 25/nov)
-- [ ] 3.1 Caninana parada, com estados
-- [ ] 3.2 Bote, recuo e corpo em segmentos
-- [ ] 3.3 Luz que diminui com a proximidade
-- [ ] 3.4 Susto, game over e reinício
+- [x] 3.1 Caninana parada, com estados
+- [x] 3.2 Bote, recuo e corpo em segmentos
+- [x] 3.3 Luz que diminui com a proximidade
+- [x] 3.4 Susto, game over e reinício
 
 ### Fase 4: Jogo completo (26 a 28/nov)
 - [ ] 4.1 Armadilha com mini-missão
@@ -63,7 +66,12 @@ Entrega: 1 de dezembro de 2026.
 - Luz: superfície preta com um círculo de cor COR_BURACO, que vira transparente com set_colorkey.
 - Pulso: ESPAÇO, recarga de 25 s, revela o mapa e escurece de volta em 1,5 s (alpha da sombra sobe de 0 até ESCURIDAO). Tempo medido em segundos com get_ticks() / 1000.
 - Sons provisórios gerados por código (sons/passo.wav, sons/pulso.wav, sons/recarga.wav, musica/ambiente.wav). Trocar pelas gravações, com o mesmo nome.
-- Controles: setas ou WASD. Velocidade negativa = esquerda ou cima.
+- Caninana ataca o que faz barulho: só dá o bote se o jogador estiver rápido (acima de VELOCIDADE_SEGURA). SHIFT anda devagar. Sem isso o jogo era impossível (ela fica no único caminho para a saída).
+- Caninana escondida no mato (linha 12, coluna 15), ao lado do último corredor. Só aparece com o pulso; no bote aparece por cima da escuridão.
+- Recuo: a cabeça volta pelas posições guardadas em `corpo` (pop do início).
+- Reinício: função `reiniciar()` com `global`, chamada no começo e no ENTER.
+- Sons provisórios da caninana: sons/chiado.wav, sons/bote.wav, sons/susto.wav.
+- Controles: setas ou WASD, SHIFT devagar, ESPAÇO pulso, ENTER recomeça, ESC sai. Velocidade negativa = esquerda ou cima.
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
 - A decidir: terço manual (tecla) ou automático.
 
@@ -91,6 +99,20 @@ Entrega: 1 de dezembro de 2026.
 | Tecla do pulso | `pygame.K_SPACE` no `if` do KEYDOWN | main.py |
 | Posição e tamanho da barra | `BARRA_X`, `BARRA_Y`, `BARRA_LARGURA`, `BARRA_ALTURA` | main.py |
 | Cores da barra | `COR_BARRA`, `COR_BARRA_PRONTA`, `COR_BARRA_FUNDO` | main.py |
-| Volumes | `VOLUME_AMBIENTE`, `VOLUME_PASSO`, `VOLUME_PULSO`, `VOLUME_RECARGA` (0 a 1) | main.py |
+| Volumes | `VOLUME_...` (0 a 1) | main.py |
+| Tela cheia ou janela | `TELA_CHEIA` (True ou False) | main.py |
+| Velocidade andando devagar (SHIFT) | `VELOCIDADE_DEVAGAR` | main.py |
+| Onde a caninana fica | `CANINANA_LINHA` e `CANINANA_COLUNA` | main.py |
+| Distância em que ela fica atenta (chiado) | `DIST_ATENTA` | main.py |
+| Distância do bote | `DIST_BOTE` | main.py |
+| Velocidade que não provoca bote | `VELOCIDADE_SEGURA` | main.py |
+| Tempo de aviso antes do bote | `TEMPO_AVISO` | main.py |
+| Velocidade e alcance do bote | `VELOCIDADE_BOTE`, `ALCANCE_BOTE` | main.py |
+| Distância que conta como mordida | `DIST_MORDIDA` | main.py |
+| Luz mínima perto do perigo | `RAIO_MIN` | main.py |
+| Distância em que a luz começa a diminuir | `DIST_MEDO` | main.py |
+| Suavidade da luz | `SUAVIZACAO` (maior = muda mais rápido) | main.py |
+| Duração e zoom do susto | `DURACAO_SUSTO`, `ZOOM_INICIAL`, `ZOOM_FINAL`, `TREMOR_SUSTO` | main.py |
+| Texto do game over | `desenhar_game_over()` | main.py |
 
 Esta tabela cresce a cada etapa.
