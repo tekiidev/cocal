@@ -116,8 +116,13 @@ Entrega: 1 de dezembro de 2026.
 - Sprites e sons provisórios: sprites/bicicleta.png, homem.png, homem_rosto.png; sons/rangido.wav, sons/grito_homem.wav.
 - Introdução: JOGAR no menu leva para a HISTORIA (texto letra por letra, `LETRAS_POR_SEGUNDO`, tremendo como lamparina) e depois para o AVISO (jogar de noite e de fone; aviso de sustos, sons altos e luzes piscando; explicação da Reza do terço) com o botão CONTINUAR. ENTER ou clique completa o texto e avança. Som de tensão (zumbido, sapos, grilos, batimento) nas duas telas. Os textos ficam em `TEXTO_HISTORIA`, `TEXTO_AVISO` e `TEXTO_TERCO` no config.py. ENTER no game over e na vitória recomeça direto, sem a introdução.
 - Tela de aviso com fundo de parede de taipa (barro com as varas aparecendo nos buracos) e beiral de palha (sprites/cabana.png, 200x150 esticado para 800x600). Texto com sombra (`telas.escrever`, `SOMBRA_TEXTO`) e botão de tábua (`COR_TABUA`).
+- Texto da história reescrito com as histórias reais (ver CLAUDE.md): caninana no açude, mulher de branco na estrada do cemitério, alma na garupa da bicicleta, cascavel comum no mato, vaca parida que avança. Os vultos no arroz saíram do texto porque são invenção do jogo.
 - Reza do terço: tecla Z, uma vez por partida (`terco_usado`). Clarão dourado que mostra a mata inteira por `TEMPO_TERCO` segundos (escuridão zero e volta aos poucos em `FADE_TERCO`), inclusive a cascavel escondida. Ícone do terço no canto: dourado disponível, cinza usado.
 - Sons provisórios: sons/tensao.wav, sons/terco.wav (trocar pela minha voz: "Valei-me, Nossa Senhora!").
+- Curral: área de lama (letra `C`) no canto de cima à direita, entre o corredor do topo e a coluna 18, que desce até a saída por fora da área das cobras. É uma rota alternativa arriscada. Na lama a velocidade máxima é `VELOCIDADE_LAMA` (2). A cerca é desenhada automaticamente nos lados do curral que encostam em blocos sólidos (`desenhar_curral`).
+- Vaca parida: estados QUIETA e BRAVA. Entrou na lama, ela muge e fica BRAVA; depois de `TEMPO_BUFAR` corre atrás do jogador a `VELOCIDADE_VACA` (2.7, mais rápida que ele na lama). Não sai do curral (só anda se o próximo ponto for `C`). Saindo do curral ela desiste e volta devagar para o canto. Olhos vermelhos no escuro quando brava. Chifrada (`DIST_CHIFRE`) é game over ("A vaca parida te prensou na cerca."). A saída do curral fica do lado oposto à entrada e a vaca começa perto da entrada, para vir por trás. Teste: atravessando sem parar ela chega a 37 px (chifrada a 28); parado, ela pega.
+- Sapo do "ei, ei, ei": voz sintetizada que parece gente chamando, tocada a cada `EI_MIN` a `EI_MAX` segundos (sorteado), num lado só do fone.
+- Sprites e sons provisórios: sprites/vaca.png, vaca_rosto.png; sons/mugido.wav, sons/ei.wav.
 - Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
 - Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
@@ -212,6 +217,11 @@ Entrega: 1 de dezembro de 2026.
 | Tempo do clarão do terço | `TEMPO_TERCO`, `FADE_TERCO` | config.py |
 | Cor e força do dourado | `COR_TERCO`, `BRILHO_TERCO` | config.py |
 | Tecla do terço | `pygame.K_z` no `if` do KEYDOWN | main.py |
+| Curral (lama) | letra `C` no `mapa` | main.py |
+| Velocidade na lama | `VELOCIDADE_LAMA` | config.py |
+| Vaca (lugar, velocidade, aviso, chifrada) | `VACA_LINHA`, `VACA_COLUNA`, `VELOCIDADE_VACA`, `VELOCIDADE_VACA_CALMA`, `TEMPO_BUFAR`, `DIST_CHIFRE` | config.py |
+| Cores do curral | `COR_LAMA`, `COR_POCA`, `COR_CERCA` | config.py |
+| Frequência do "ei, ei, ei" | `EI_MIN`, `EI_MAX`, `VOLUME_EI` | config.py |
 | Onde fica a saída | letra `S` no `mapa` | main.py |
 | Tempo do amanhecer na vitória | `TEMPO_AMANHECER` (segundos) | config.py |
 | Cor do amanhecer | `COR_AMANHECER` | config.py |

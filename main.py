@@ -9,10 +9,10 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 mapa = [
     "####################",
-    "#....#...A...#.....#",
-    "#.L..#.#####.#.###.#",
-    "#..+.#.#...#...#...#",
-    "#.L.L#.#.#.#####.###",
+    "#....#...A...#CCCCC#",
+    "#.L..#.#####.#CCCCC#",
+    "#..+.#.#...#..CCCCC#",
+    "#.L.L#.#.#.#######.#",
     "#......#.#.....#...#",
     "#.######.#####.###.#",
     "#....A.#.....#.....#",
@@ -28,9 +28,9 @@ mapa = [
 decoracao = [
     "PMM.PPMM.M...MPMP.M.",
     "M.......RRR..M.....M",
-    "M....M.MM.PM.M.PPP.M",
-    ".....P.M.......P....",
-    "M....M.M...MM..M..P.",
+    "M....M.MM.PM.M.....M",
+    ".....P.M............",
+    "M....M.M...MM..MM...",
     "P........P.....M....",
     "P.PM..MM.PM..M.PPM..",
     "M...RRRM...........M",
@@ -68,6 +68,8 @@ def desenhar_mapa(superficie):
                 cor = COR_ARMADILHA
             elif bloco == "S":
                 cor = COR_SAIDA
+            elif bloco == "C":
+                cor = COR_LAMA
             else:
                 cor = COR_TRILHA
             quadrado = (coluna * TAMANHO_BLOCO, linha * TAMANHO_BLOCO, TAMANHO_BLOCO, TAMANHO_BLOCO)
@@ -78,6 +80,8 @@ def desenhar_mapa(superficie):
             elif bloco == "+":
                 base = (linha + 1) * TAMANHO_BLOCO
                 superficie.blit(img_cruz, (centro_x - img_cruz.get_width() // 2, base - img_cruz.get_height()))
+            elif bloco == "C":
+                desenhar_curral(superficie, linha, coluna)
 
     for linha in range(len(decoracao)):
         for coluna in range(len(decoracao[linha])):
@@ -104,6 +108,26 @@ def desenhar_arroz(agora):
 def carregar_com_espelho(arquivo):
     imagem = pygame.image.load(arquivo).convert_alpha()
     return [imagem, pygame.transform.flip(imagem, True, False)]
+
+
+def desenhar_curral(superficie, linha, coluna):
+    esquerda = coluna * TAMANHO_BLOCO
+    topo = linha * TAMANHO_BLOCO
+    direita = esquerda + TAMANHO_BLOCO
+    base = topo + TAMANHO_BLOCO
+    poca_x = esquerda + (linha * 13 + coluna * 7) % (TAMANHO_BLOCO // 2)
+    poca_y = topo + (linha * 7 + coluna * 11) % (TAMANHO_BLOCO // 2)
+    pygame.draw.ellipse(superficie, COR_POCA, (poca_x, poca_y, TAMANHO_BLOCO // 2, TAMANHO_BLOCO // 4))
+    lados = [
+        [linha - 1, coluna, (esquerda, topo), (direita, topo)],
+        [linha + 1, coluna, (esquerda, base), (direita, base)],
+        [linha, coluna - 1, (esquerda, topo), (esquerda, base)],
+        [linha, coluna + 1, (direita, topo), (direita, base)],
+    ]
+    for vizinho_linha, vizinho_coluna, inicio, fim in lados:
+        if mapa[vizinho_linha][vizinho_coluna] in BLOCOS_SOLIDOS:
+            pygame.draw.line(superficie, COR_CERCA, inicio, fim, GROSSURA_CERCA)
+            pygame.draw.circle(superficie, COR_CERCA, inicio, GROSSURA_CERCA)
 
 
 def eh_parede(px, py):
@@ -274,6 +298,7 @@ def reiniciar():
     global mulher_x, mulher_y, ponto_mulher, mulher_ativa
     global bici_x, bici_y, montado, peso, peso_maximo, homem_ativo
     global terco_usado, inicio_terco
+    global vaca_x, vaca_y, estado_vaca, inicio_vaca, angulo_vaca, proximo_ei
 
     margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
     x = COLUNA_INICIAL * TAMANHO_BLOCO + margem
@@ -317,6 +342,13 @@ def reiniciar():
     homem_ativo = True
 
     terco_usado = False
+
+    vaca_x = vaca_casa_x
+    vaca_y = vaca_casa_y
+    estado_vaca = QUIETA
+    inicio_vaca = 0
+    angulo_vaca = 0
+    proximo_ei = pygame.time.get_ticks() / 1000 + random.uniform(EI_MIN, EI_MAX)
     inicio_terco = -TEMPO_TERCO
 
     armadilhas_usadas = []
@@ -375,6 +407,7 @@ retangulos_opcoes = telas.criar_retangulos_opcoes()
 casa_x = CASCAVEL_COLUNA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
 casa_y = CASCAVEL_LINHA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
 origem_x, origem_y = centro_do_bloco([BICICLETA_LINHA, BICICLETA_COLUNA])
+vaca_casa_x, vaca_casa_y = centro_do_bloco([VACA_LINHA, VACA_COLUNA])
 
 sombra = pygame.Surface((LARGURA, ALTURA), pygame.SRCALPHA)
 gradiente = telas.criar_gradiente()
@@ -419,6 +452,10 @@ som_rangido = carregar_som("sons/rangido.wav", VOLUME_RANGIDO)
 som_grito_homem = carregar_som("sons/grito_homem.wav", VOLUME_GRITO_HOMEM)
 som_tensao = carregar_som("sons/tensao.wav", VOLUME_TENSAO)
 som_terco = carregar_som("sons/terco.wav", VOLUME_TERCO)
+som_mugido = carregar_som("sons/mugido.wav", VOLUME_MUGIDO)
+som_ei = carregar_som("sons/ei.wav", VOLUME_EI)
+img_vaca = pygame.image.load("sprites/vaca.png").convert_alpha()
+img_vaca_rosto = pygame.image.load("sprites/vaca_rosto.png").convert_alpha()
 brilho = pygame.Surface((LARGURA, ALTURA), pygame.SRCALPHA)
 botao_continuar = telas.criar_botao()
 img_cabana = pygame.transform.scale(pygame.image.load("sprites/cabana.png").convert(), (LARGURA, ALTURA))
@@ -585,6 +622,10 @@ while rodando:
         limite = VELOCIDADE_BICICLETA + (VELOCIDADE_PESADA - VELOCIDADE_BICICLETA) * peso
     if teclas[pygame.K_LSHIFT] or teclas[pygame.K_RSHIFT]:
         limite = min(limite, VELOCIDADE_DEVAGAR)
+    linha_pe = int((y + TAMANHO_JOGADOR // 2) // TAMANHO_BLOCO)
+    coluna_pe = int((x + TAMANHO_JOGADOR // 2) // TAMANHO_BLOCO)
+    if mapa[linha_pe][coluna_pe] == "C":
+        limite = min(limite, VELOCIDADE_LAMA)
     vel_x = limitar(vel_x * ATRITO, limite)
     vel_y = limitar(vel_y * ATRITO, limite)
 
@@ -757,6 +798,44 @@ while rodando:
         som_rangido.set_volume(0)
 
     perigo = min(dist_cascavel, dist_caninana)
+
+    no_curral = mapa[linha_jogador][coluna_jogador] == "C"
+    if no_curral and estado_vaca == QUIETA:
+        estado_vaca = BRAVA
+        inicio_vaca = agora
+        som_mugido.play()
+    elif not no_curral and estado_vaca == BRAVA:
+        estado_vaca = QUIETA
+    if estado_vaca == BRAVA and agora - inicio_vaca > TEMPO_BUFAR:
+        alvo_x, alvo_y = jogador_cx, jogador_cy
+        passo = VELOCIDADE_VACA
+    else:
+        alvo_x, alvo_y = vaca_casa_x, vaca_casa_y
+        passo = VELOCIDADE_VACA_CALMA
+    novo_x, novo_y = andar_ate(vaca_x, vaca_y, alvo_x, alvo_y, passo)
+    if mapa[int(novo_y // TAMANHO_BLOCO)][int(novo_x // TAMANHO_BLOCO)] == "C":
+        if novo_x != vaca_x or novo_y != vaca_y:
+            angulo_vaca = math.degrees(math.atan2(novo_x - vaca_x, novo_y - vaca_y))
+        vaca_x, vaca_y = novo_x, novo_y
+    dist_vaca = distancia(jogador_cx, jogador_cy, vaca_x, vaca_y)
+    if estado_vaca == BRAVA:
+        perigo = min(perigo, dist_vaca)
+        if dist_vaca < DIST_CHIFRE:
+            estado_jogo = SUSTO
+            inicio_susto = agora
+            img_susto = img_vaca_rosto
+            mensagem_fim = "A vaca parida te prensou na cerca."
+            pygame.mixer.stop()
+            som_susto.play()
+
+    if agora >= proximo_ei:
+        canal = som_ei.play()
+        if canal is not None:
+            if random.choice([True, False]):
+                canal.set_volume(VOLUME_EI, 0)
+            else:
+                canal.set_volume(0, VOLUME_EI)
+        proximo_ei = agora + random.uniform(EI_MIN, EI_MAX)
     if mulher_ativa:
         alvo_x, alvo_y = centro_do_bloco(ROTA_MULHER[ponto_mulher])
         if distancia(mulher_x, mulher_y, alvo_x, alvo_y) < VELOCIDADE_MULHER:
@@ -789,6 +868,7 @@ while rodando:
     if not atacando:
         desenhar_cascavel()
     desenhar_caninana()
+    telas.desenhar_centro(tela, pygame.transform.rotate(img_vaca, angulo_vaca), vaca_x, vaca_y)
     if montado:
         if direcao == CIMA or direcao == BAIXO:
             telas.desenhar_centro(tela, img_bicicleta_em_pe, jogador_cx, jogador_cy)
@@ -831,6 +911,14 @@ while rodando:
         brilho.fill((COR_TERCO[0], COR_TERCO[1], COR_TERCO[2], int(BRILHO_TERCO * (1 - tempo_terco / TEMPO_TERCO))))
         tela.blit(brilho, (0, 0))
 
+    if estado_vaca == BRAVA:
+        direcao_vaca = math.radians(angulo_vaca)
+        cabeca_vaca_x = vaca_x + math.sin(direcao_vaca) * DIST_OLHOS_VACA
+        cabeca_vaca_y = vaca_y + math.cos(direcao_vaca) * DIST_OLHOS_VACA
+        for lado in (-1, 1):
+            olho_x = cabeca_vaca_x + math.cos(direcao_vaca) * SEPARACAO_OLHOS * lado
+            olho_y = cabeca_vaca_y - math.sin(direcao_vaca) * SEPARACAO_OLHOS * lado
+            pygame.draw.circle(tela, COR_OLHO_VACA, (int(olho_x), int(olho_y)), 2)
     if mulher_ativa:
         flutuar = math.sin(agora * FLUTUAR_VELOCIDADE) * FLUTUAR_ALTURA
         telas.desenhar_centro(tela, img_mulher, mulher_x, mulher_y + flutuar)

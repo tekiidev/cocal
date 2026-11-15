@@ -230,18 +230,21 @@ HISTORIA = 9
 AVISO = 10
 
 TEXTO_HISTORIA = [
-    "Este jogo foi inspirado em histórias contadas",
+    "Este jogo foi inspirado em histórias vividas e contadas",
     "no povoado João Rufino, em Trizidela do Vale, Maranhão.",
     "",
-    "Os mais velhos falam de um rapaz que quase foi",
-    "mordido por uma caninana no meio da trilha.",
-    "De uma mulher de vestido branco que ronda o cemitério.",
-    "De um homem que sobe na garupa das bicicletas",
-    "até elas ficarem pesadas demais para andar.",
-    "E de vultos que passam no meio do arroz alto.",
+    "Quando eu era criança, no açude com o meu pai,",
+    "uma caninana passou entre as minhas pernas.",
+    "Dei um pulo tão grande que fui parar na beira d'água.",
     "",
-    "Dizem que, no Cocal, de noite,",
-    "a gente escuta mais do que vê.",
+    "Na estrada perto do cemitério, aparece o vulto",
+    "de uma mulher de vestido branco.",
+    "Dizem que uma alma sobe na garupa das bicicletas",
+    "até elas ficarem pesadas demais para andar.",
+    "No mato, a cascavel é comum. E a vaca parida avança",
+    "em quem chega perto.",
+    "",
+    "No Cocal, de noite, a gente escuta mais do que vê.",
 ]
 TITULO_AVISO = "Antes de entrar na mata"
 TEXTO_AVISO = [
@@ -258,8 +261,8 @@ TEXTO_BOTAO = "CONTINUAR"
 
 LETRAS_POR_SEGUNDO = 26
 MARGEM_TEXTO = 70
-HISTORIA_Y = 90
-ESPACO_HISTORIA = 34
+HISTORIA_Y = 70
+ESPACO_HISTORIA = 30
 AVISO_Y = 110
 TERCO_TEXTO_Y = 290
 BOTAO_Y = 470
@@ -286,3 +289,26 @@ VOLUME_TERCO = 0.9
 SOMBRA_TEXTO = 2
 COR_TABUA = (78, 54, 30)
 COR_TABUA_ESCURA = (44, 30, 16)
+
+COR_LAMA = (74, 54, 32)
+COR_POCA = (52, 38, 22)
+COR_CERCA = (112, 82, 48)
+GROSSURA_CERCA = 3
+VELOCIDADE_LAMA = 2
+
+QUIETA = 0
+BRAVA = 1
+VACA_LINHA = 1
+VACA_COLUNA = 14
+VELOCIDADE_VACA = 2.7
+VELOCIDADE_VACA_CALMA = 0.6
+TEMPO_BUFAR = 0.8
+DIST_CHIFRE = 28
+DIST_OLHOS_VACA = 20
+SEPARACAO_OLHOS = 5
+COR_OLHO_VACA = (230, 20, 10)
+VOLUME_MUGIDO = 0.9
+
+EI_MIN = 15
+EI_MAX = 40
+VOLUME_EI = 0.7
