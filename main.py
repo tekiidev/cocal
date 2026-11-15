@@ -10,10 +10,10 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 mapa = [
     "####################",
     "#....#...A...#.....#",
-    "#.##.#.#####.#.###.#",
-    "#.#..#.#...#...#...#",
-    "#.#.##.#.#.#####.###",
-    "#A#....#.#.....#...#",
+    "#.L..#.#####.#.###.#",
+    "#..+.#.#...#...#...#",
+    "#.L.L#.#.#.#####.###",
+    "#......#.#.....#...#",
     "#.######.#####.###.#",
     "#....A.#.....#.....#",
     "######.#####.###.#.#",
@@ -54,12 +54,18 @@ def desenhar_mapa():
                 cor = COR_TRILHA
             quadrado = (coluna * TAMANHO_BLOCO, linha * TAMANHO_BLOCO, TAMANHO_BLOCO, TAMANHO_BLOCO)
             pygame.draw.rect(tela, cor, quadrado)
+            centro_x = coluna * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
+            if bloco == "L":
+                telas.desenhar_centro(tela, img_lapide, centro_x, linha * TAMANHO_BLOCO + TAMANHO_BLOCO // 2)
+            elif bloco == "+":
+                base = (linha + 1) * TAMANHO_BLOCO
+                tela.blit(img_cruz, (centro_x - img_cruz.get_width() // 2, base - img_cruz.get_height()))
 
 
 def eh_parede(px, py):
     coluna = int(px // TAMANHO_BLOCO)
     linha = int(py // TAMANHO_BLOCO)
-    return mapa[linha][coluna] == "#"
+    return mapa[linha][coluna] in BLOCOS_SOLIDOS
 
 
 def colide(px, py):
@@ -108,6 +114,13 @@ def desenhar_caninana():
         numero += 1
     cabeca = pygame.transform.rotate(img_caninana_cabeca, angulo_caninana)
     telas.desenhar_centro(tela, cabeca, caninana_x, caninana_y)
+
+
+def andar_ate(px, py, alvo_x, alvo_y, passo):
+    falta = distancia(px, py, alvo_x, alvo_y)
+    if falta <= passo:
+        return alvo_x, alvo_y
+    return px + (alvo_x - px) / falta * passo, py + (alvo_y - py) / falta * passo
 
 
 def centro_do_bloco(ponto):
@@ -170,6 +183,7 @@ def reiniciar():
     global assombro_atual, assombro_agendado, proximo_assombro
     global caninana_x, caninana_y, estado_caninana, ponto_rota, fim_perseguicao, rastro, angulo_caninana
     global fim_veneno, inicio_mordida
+    global mulher_x, mulher_y, ponto_mulher, mulher_ativa
 
     margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
     x = COLUNA_INICIAL * TAMANHO_BLOCO + margem
@@ -201,6 +215,10 @@ def reiniciar():
     rastro = []
     angulo_caninana = 0
 
+    mulher_x, mulher_y = centro_do_bloco(ROTA_MULHER[0])
+    ponto_mulher = 1
+    mulher_ativa = True
+
     armadilhas_usadas = []
     mensagem_fim = ""
     inicio_partida = pygame.time.get_ticks() / 1000
@@ -218,6 +236,8 @@ def reiniciar():
     som_chocalho.play(loops=-1)
     som_chiado.set_volume(0)
     som_chiado.play(loops=-1)
+    som_lamento.set_volume(0)
+    som_lamento.play(loops=-1)
     pygame.mouse.set_visible(False)
 
 
@@ -275,6 +295,15 @@ som_chiado = carregar_som("sons/chiado.wav", VOLUME_CHIADO)
 som_mordida = carregar_som("sons/mordida.wav", VOLUME_MORDIDA)
 som_grito = carregar_som("sons/grito.wav", VOLUME_GRITO)
 img_rosto = pygame.image.load("sprites/cara.png").convert_alpha()
+img_lapide = pygame.image.load("sprites/lapide.png").convert_alpha()
+img_cruz = pygame.image.load("sprites/cruz.png").convert_alpha()
+img_mulher = pygame.image.load("sprites/mulher.png").convert_alpha()
+img_mulher.set_alpha(TRANSPARENCIA_MULHER)
+img_mulher_rosto = pygame.image.load("sprites/mulher_rosto.png").convert_alpha()
+img_mulher_mao = pygame.image.load("sprites/mulher_mao.png").convert_alpha()
+som_lamento = carregar_som("sons/lamento.wav", VOLUME_LAMENTO)
+som_grito_mulher = carregar_som("sons/grito_mulher.wav", VOLUME_GRITO_MULHER)
+inicio_susto_mulher = 0
 rosto_mostrado = False
 inicio_rosto = 0
 
@@ -370,6 +399,10 @@ while rodando:
                 mensagem_fim = "Você não conseguiu se soltar do laço."
                 estado_jogo = GAME_OVER
                 pygame.mixer.stop()
+        elif estado_jogo == MULHER:
+            telas.desenhar_susto_mulher(tela, agora - inicio_susto_mulher, img_mulher_rosto, img_mulher_mao)
+            if agora - inicio_susto_mulher > DURACAO_SUSTO_MULHER:
+                estado_jogo = JOGANDO
         elif estado_jogo == ROSTO:
             telas.desenhar_susto(tela, agora - inicio_rosto, img_rosto, DURACAO_ROSTO, ZOOM_ROSTO_INICIAL, ZOOM_ROSTO_FINAL, TREMOR_ROSTO)
             if agora - inicio_rosto > DURACAO_ROSTO:
@@ -568,6 +601,23 @@ while rodando:
     som_chiado.set_volume(VOLUME_CHIADO * max(0, 1 - dist_caninana / DIST_SOM_CANINANA))
 
     perigo = min(dist_cascavel, dist_caninana)
+    if mulher_ativa:
+        alvo_x, alvo_y = centro_do_bloco(ROTA_MULHER[ponto_mulher])
+        if distancia(mulher_x, mulher_y, alvo_x, alvo_y) < VELOCIDADE_MULHER:
+            ponto_mulher = (ponto_mulher + 1) % len(ROTA_MULHER)
+        mulher_x, mulher_y = andar_ate(mulher_x, mulher_y, alvo_x, alvo_y, VELOCIDADE_MULHER)
+        dist_mulher = distancia(jogador_cx, jogador_cy, mulher_x, mulher_y)
+        perigo = min(perigo, dist_mulher)
+        som_lamento.set_volume(VOLUME_LAMENTO * max(0, 1 - dist_mulher / DIST_SOM_MULHER))
+        if dist_mulher < DIST_MULHER:
+            mulher_ativa = False
+            estado_jogo = MULHER
+            inicio_susto_mulher = agora
+            vel_x = 0
+            vel_y = 0
+            som_lamento.stop()
+            som_grito_mulher.play()
+
     alvo = RAIO_LUZ
     if perigo < DIST_MEDO:
         alvo = RAIO_MIN + (RAIO_LUZ - RAIO_MIN) * perigo / DIST_MEDO
@@ -602,6 +652,9 @@ while rodando:
     pygame.draw.circle(sombra, COR_BURACO, centro, int(raio_desenho))
     tela.blit(sombra, (0, 0))
 
+    if mulher_ativa:
+        flutuar = math.sin(agora * FLUTUAR_VELOCIDADE) * FLUTUAR_ALTURA
+        telas.desenhar_centro(tela, img_mulher, mulher_x, mulher_y + flutuar)
     if atacando:
         desenhar_cascavel()
     if agora - inicio_mordida < DURACAO_FLASH_MORDIDA:

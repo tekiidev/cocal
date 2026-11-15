@@ -101,6 +101,11 @@ Entrega: 1 de dezembro de 2026.
 - Rosto: quando o vulto chega no meio da travessia (passa pelo caipira), aparece uma cara em tela cheia por `DURACAO_ROSTO` s, com flash, zoom, tremor e grito. Não mata: depois volta ao jogo (estado `ROSTO`). `CHANCE_ROSTO` (0 a 1) controla se toda passagem do vulto mostra a cara. A `desenhar_susto` do `telas.py` agora recebe imagem, duração, zoom e tremor, e serve para o susto das cobras e para o rosto.
 - Pendente: aviso de sustos, luzes piscando e fones na tela inicial (previsto no CLAUDE.md).
 - Sprite e som provisórios: sprites/cara.png, sons/grito.wav.
+- Cemitério: área aberta de 4x4 blocos no canto de cima à esquerda (linhas 2 a 5, colunas 1 a 4), no caminho do jogador. Letras novas no mapa: `L` (lápide) e `+` (cruz de madeira grande, desenhada com a base no bloco e subindo um bloco acima). As duas são sólidas: `eh_parede` agora usa `in BLOCOS_SOLIDOS` ("#L+"). O ponto de assombro que ficava ali saiu.
+- Mulher de branco: anda bem devagar pela `ROTA_MULHER` (um retângulo em volta da cruz que cruza o corredor da esquerda), meio transparente (`set_alpha`) e flutuando (`math.sin`). É desenhada depois da sombra, então aparece fraca até no escuro. O lamento aumenta com a proximidade e a luz diminui perto dela. Chegar a menos de `DIST_MULHER` dispara o susto (estado `MULHER`), que não mata; depois ela some até a próxima partida (`mulher_ativa`).
+- Susto da mulher (`telas.desenhar_susto_mulher`): flash; a cara avança (zoom até `ZOOM_MULHER_MEIO` em `TEMPO_AVANCO`) e continua crescendo para fora da tela (`CRESCIMENTO_MULHER`); dois braços finos (linhas) saem de baixo do queixo, sobem até cotovelos no alto (`COTOVELO_X`, `COTOVELO_Y`) e descem até as mãos, que agarram as bordas (`MAO_ESQUERDA_Y`, `MAO_DIREITA_Y`). A mão direita é a esquerda espelhada (`pygame.transform.flip`).
+- Nova função `andar_ate(px, py, alvo_x, alvo_y, passo)`: anda um passo em direção ao alvo sem passar dele. Usada pela mulher.
+- Sprites e sons provisórios: sprites/mulher.png, mulher_rosto.png, mulher_mao.png, cruz.png, lapide.png; sons/lamento.wav, sons/grito_mulher.wav.
 - Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
 - Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
@@ -169,6 +174,15 @@ Entrega: 1 de dezembro de 2026.
 | Chance do vulto mostrar a cara | `CHANCE_ROSTO` (1.0 = sempre) | config.py |
 | Duração, zoom e tremor da cara | `DURACAO_ROSTO`, `ZOOM_ROSTO_INICIAL`, `ZOOM_ROSTO_FINAL`, `TREMOR_ROSTO` | config.py |
 | Volume do grito | `VOLUME_GRITO` | config.py |
+| Cemitério (lápides e cruz) | letras `L` e `+` no `mapa` | main.py |
+| Blocos que não dá para atravessar | `BLOCOS_SOLIDOS` | config.py |
+| Caminho e velocidade da mulher | `ROTA_MULHER`, `VELOCIDADE_MULHER` | config.py |
+| Distância que dispara o susto da mulher | `DIST_MULHER` | config.py |
+| Quão visível ela é no escuro | `TRANSPARENCIA_MULHER` (0 a 255) | config.py |
+| Flutuação | `FLUTUAR_ALTURA`, `FLUTUAR_VELOCIDADE` | config.py |
+| Susto da mulher (tempo, zoom, tremor) | `DURACAO_SUSTO_MULHER`, `TEMPO_AVANCO`, `ZOOM_MULHER_INICIAL`, `ZOOM_MULHER_MEIO`, `CRESCIMENTO_MULHER`, `TREMOR_MULHER` | config.py |
+| Braços e mãos do susto | `TEMPO_BRACOS`, `COTOVELO_X`, `COTOVELO_Y`, `MAO_ESQUERDA_Y`, `MAO_DIREITA_Y`, `ESCALA_MAO`, `GROSSURA_BRACO`, `COR_BRACO` | config.py |
+| Volumes da mulher | `VOLUME_LAMENTO`, `VOLUME_GRITO_MULHER` | config.py |
 | Onde fica a saída | letra `S` no `mapa` | main.py |
 | Tempo do amanhecer na vitória | `TEMPO_AMANHECER` (segundos) | config.py |
 | Cor do amanhecer | `COR_AMANHECER` | config.py |

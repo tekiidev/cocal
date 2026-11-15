@@ -108,3 +108,53 @@ def desenhar_vulto(tela, vx, vy):
     corpo = (int(vx) - TAMANHO_VULTO, int(vy) - TAMANHO_VULTO, TAMANHO_VULTO * 2, TAMANHO_VULTO * 3)
     pygame.draw.ellipse(tela, COR_VULTO, corpo)
     pygame.draw.circle(tela, COR_VULTO, (int(vx), int(vy) - TAMANHO_VULTO), TAMANHO_VULTO)
+
+
+def desenhar_susto_mulher(tela, tempo, img_rosto, img_mao):
+    if tempo < DURACAO_FLASH:
+        tela.fill(COR_FLASH)
+        return
+    tela.fill(COR_FUNDO)
+
+    avanco = min(tempo / TEMPO_AVANCO, 1)
+    zoom = ZOOM_MULHER_INICIAL + (ZOOM_MULHER_MEIO - ZOOM_MULHER_INICIAL) * avanco
+    if tempo > TEMPO_AVANCO:
+        zoom += (tempo - TEMPO_AVANCO) * CRESCIMENTO_MULHER
+    rosto = pygame.transform.scale_by(img_rosto, zoom)
+    cx = LARGURA // 2 + random.randint(-TREMOR_MULHER, TREMOR_MULHER)
+    cy = ALTURA // 2 + random.randint(-TREMOR_MULHER, TREMOR_MULHER)
+
+    esticar = min(tempo / TEMPO_BRACOS, 1)
+    ombro_y = cy + rosto.get_height() // 3
+    maos = []
+    for lado in (-1, 1):
+        ombro_x = cx + lado * rosto.get_width() // 4
+        if lado == -1:
+            borda_x = 0
+            borda_y = MAO_ESQUERDA_Y
+        else:
+            borda_x = LARGURA
+            borda_y = MAO_DIREITA_Y
+        cotovelo_x = ombro_x + (cx + lado * COTOVELO_X - ombro_x) * esticar
+        cotovelo_y = ombro_y + (COTOVELO_Y - ombro_y) * esticar
+        mao_x = cotovelo_x + (borda_x - cotovelo_x) * esticar
+        mao_y = cotovelo_y + (borda_y - cotovelo_y) * esticar
+        ombro = (ombro_x, ombro_y)
+        cotovelo = (cotovelo_x, cotovelo_y)
+        mao = (mao_x, mao_y)
+        pygame.draw.line(tela, COR_BRACO_SOMBRA, ombro, cotovelo, GROSSURA_BRACO + 4)
+        pygame.draw.line(tela, COR_BRACO_SOMBRA, cotovelo, mao, GROSSURA_BRACO + 4)
+        pygame.draw.line(tela, COR_BRACO, ombro, cotovelo, GROSSURA_BRACO)
+        pygame.draw.line(tela, COR_BRACO, cotovelo, mao, GROSSURA_BRACO)
+        pygame.draw.circle(tela, COR_BRACO_SOMBRA, (int(cotovelo_x), int(cotovelo_y)), GROSSURA_BRACO)
+        maos.append([lado, mao_x, mao_y])
+
+    desenhar_centro(tela, rosto, cx, cy)
+
+    mao = pygame.transform.scale_by(img_mao, ESCALA_MAO)
+    for lado, mao_x, mao_y in maos:
+        if lado == -1:
+            desenhar_centro(tela, mao, mao_x + mao.get_width() * 0.35, mao_y)
+        else:
+            espelhada = pygame.transform.flip(mao, True, False)
+            desenhar_centro(tela, espelhada, mao_x - mao.get_width() * 0.35, mao_y)
