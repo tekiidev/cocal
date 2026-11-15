@@ -225,3 +225,64 @@ ZOOM_HOMEM = 8
 ANGULO_TORCAO = 14
 VELOCIDADE_TORCAO = 9
 TREMOR_HOMEM = 10
+
+HISTORIA = 9
+AVISO = 10
+
+TEXTO_HISTORIA = [
+    "Este jogo foi inspirado em histórias contadas",
+    "no povoado João Rufino, em Trizidela do Vale, Maranhão.",
+    "",
+    "Os mais velhos falam de um rapaz que quase foi",
+    "mordido por uma caninana no meio da trilha.",
+    "De uma mulher de vestido branco que ronda o cemitério.",
+    "De um homem que sobe na garupa das bicicletas",
+    "até elas ficarem pesadas demais para andar.",
+    "E de vultos que passam no meio do arroz alto.",
+    "",
+    "Dizem que, no Cocal, de noite,",
+    "a gente escuta mais do que vê.",
+]
+TITULO_AVISO = "Antes de entrar na mata"
+TEXTO_AVISO = [
+    "Jogue de noite, com a luz apagada e de fone de ouvido.",
+    "Este jogo tem sustos, sons altos e luzes piscando.",
+]
+TEXTO_TERCO = [
+    "Reza do terço (tecla Z)",
+    "Um clarão dourado mostra a mata inteira por alguns segundos,",
+    "com tudo o que se esconde nela.",
+    "Só dá para rezar uma vez por noite.",
+]
+TEXTO_BOTAO = "CONTINUAR"
+
+LETRAS_POR_SEGUNDO = 26
+MARGEM_TEXTO = 70
+HISTORIA_Y = 90
+ESPACO_HISTORIA = 34
+AVISO_Y = 110
+TERCO_TEXTO_Y = 290
+BOTAO_Y = 470
+BOTAO_LARGURA = 260
+BOTAO_ALTURA = 56
+PISCAR = 0.6
+CHANCE_FALHA_TEXTO = 0.04
+FALHA_TEXTO = 0.35
+TEMPO_FADE_AVISO = 1.5
+VOLUME_TENSAO = 0.8
+DICA_FIM_Y = 555
+
+TEMPO_TERCO = 3
+FADE_TERCO = 1
+COR_TERCO = (232, 192, 96)
+COR_TERCO_USADO = (80, 80, 80)
+BRILHO_TERCO = 70
+TERCO_X = 760
+TERCO_Y = 572
+CONTAS_TERCO = 10
+RAIO_TERCO = 12
+VOLUME_TERCO = 0.9
+
+SOMBRA_TEXTO = 2
+COR_TABUA = (78, 54, 30)
+COR_TABUA_ESCURA = (44, 30, 16)

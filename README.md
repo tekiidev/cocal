@@ -33,6 +33,7 @@ Jogo:
 - SHIFT: andar devagar
 - ESPAÇO: pulso
 - E: pegar ou largar a bicicleta
+- Z: Reza do terço (uma vez por partida)
 - ESQUERDA e DIREITA alternadas: soltar o pé do laço
 - ENTER: jogar de novo (no game over e na vitória)
 - ESC: voltar ao menu

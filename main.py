@@ -130,7 +130,7 @@ def distancia(ax, ay, bx, by):
 
 def desenhar_cascavel():
     if estado_cascavel == ESCONDIDA:
-        if tempo_pulso < DURACAO_PULSO:
+        if tempo_pulso < DURACAO_PULSO or terco_ativo:
             telas.desenhar_centro(tela, img_cascavel_enrolada, casa_x, casa_y)
     elif estado_cascavel == ATENTA:
         tremor_x = random.randint(-TREMOR_ATENTA, TREMOR_ATENTA)
@@ -199,6 +199,29 @@ def agendar_assombro(agora):
         assombro_agendado = agora + random.uniform(ATRASO_MIN, ATRASO_MAX)
 
 
+def comecar_historia(agora):
+    global estado_jogo, inicio_tela
+    estado_jogo = HISTORIA
+    inicio_tela = agora
+    pygame.mixer.stop()
+    som_tensao.play(loops=-1)
+
+
+def avancar_introducao(agora):
+    global estado_jogo, inicio_tela
+    if estado_jogo == HISTORIA:
+        tempo_total = telas.total_letras_historia() / LETRAS_POR_SEGUNDO
+        if agora - inicio_tela < tempo_total:
+            inicio_tela = agora - tempo_total
+        else:
+            estado_jogo = AVISO
+            inicio_tela = agora
+            som_navegar.play()
+    else:
+        reiniciar()
+        som_confirmar.play()
+
+
 def usar_bicicleta(agora):
     global montado, bici_x, bici_y, homem_ativo, estado_jogo, inicio_susto_homem, vel_x, vel_y
     centro_x = x + TAMANHO_JOGADOR // 2
@@ -250,6 +273,7 @@ def reiniciar():
     global fim_veneno, inicio_mordida
     global mulher_x, mulher_y, ponto_mulher, mulher_ativa
     global bici_x, bici_y, montado, peso, peso_maximo, homem_ativo
+    global terco_usado, inicio_terco
 
     margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
     x = COLUNA_INICIAL * TAMANHO_BLOCO + margem
@@ -291,6 +315,9 @@ def reiniciar():
     peso = 0
     peso_maximo = 0
     homem_ativo = True
+
+    terco_usado = False
+    inicio_terco = -TEMPO_TERCO
 
     armadilhas_usadas = []
     mensagem_fim = ""
@@ -390,6 +417,12 @@ img_homem = pygame.image.load("sprites/homem.png").convert_alpha()
 img_homem_rosto = pygame.image.load("sprites/homem_rosto.png").convert_alpha()
 som_rangido = carregar_som("sons/rangido.wav", VOLUME_RANGIDO)
 som_grito_homem = carregar_som("sons/grito_homem.wav", VOLUME_GRITO_HOMEM)
+som_tensao = carregar_som("sons/tensao.wav", VOLUME_TENSAO)
+som_terco = carregar_som("sons/terco.wav", VOLUME_TERCO)
+brilho = pygame.Surface((LARGURA, ALTURA), pygame.SRCALPHA)
+botao_continuar = telas.criar_botao()
+img_cabana = pygame.transform.scale(pygame.image.load("sprites/cabana.png").convert(), (LARGURA, ALTURA))
+inicio_tela = 0
 inicio_susto_homem = 0
 
 cenario = pygame.Surface((LARGURA, ALTURA))
@@ -445,11 +478,24 @@ while rodando:
                 if sob_mouse != -1:
                     opcao = sob_mouse
                     escolheu = True
+        elif estado_jogo == HISTORIA or estado_jogo == AVISO:
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_ESCAPE:
+                    abrir_menu()
+                elif evento.key == pygame.K_RETURN or evento.key == pygame.K_SPACE:
+                    avancar_introducao(agora)
+            elif evento.type == pygame.MOUSEBUTTONDOWN:
+                if estado_jogo == HISTORIA or botao_continuar.collidepoint(evento.pos):
+                    avancar_introducao(agora)
         elif evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_ESCAPE:
                 abrir_menu()
             elif evento.key == pygame.K_RETURN and (estado_jogo == GAME_OVER or estado_jogo == VITORIA):
                 reiniciar()
+            elif evento.key == pygame.K_z and estado_jogo == JOGANDO and not terco_usado:
+                terco_usado = True
+                inicio_terco = agora
+                som_terco.play()
             elif evento.key == pygame.K_e and estado_jogo == JOGANDO:
                 usar_bicicleta(agora)
             elif evento.key == pygame.K_SPACE and estado_jogo == JOGANDO:
@@ -471,7 +517,7 @@ while rodando:
 
     if escolheu:
         if opcao == OPCAO_JOGAR:
-            reiniciar()
+            comecar_historia(agora)
             som_confirmar.play()
         else:
             rodando = False
@@ -491,6 +537,11 @@ while rodando:
                 mensagem_fim = "Você não conseguiu se soltar do laço."
                 estado_jogo = GAME_OVER
                 pygame.mixer.stop()
+        elif estado_jogo == HISTORIA:
+            telas.desenhar_historia(tela, agora - inicio_tela)
+        elif estado_jogo == AVISO:
+            mouse_em_cima = botao_continuar.collidepoint(pygame.mouse.get_pos())
+            telas.desenhar_aviso(tela, agora - inicio_tela, botao_continuar, mouse_em_cima, img_cabana)
         elif estado_jogo == HOMEM:
             telas.desenhar_susto_homem(tela, agora - inicio_susto_homem, img_homem_rosto)
             if agora - inicio_susto_homem > DURACAO_SUSTO_HOMEM:
@@ -731,6 +782,8 @@ while rodando:
     raio_luz += (alvo - raio_luz) * SUAVIZACAO
 
     atacando = estado_cascavel == BOTE or estado_cascavel == RECUA
+    tempo_terco = agora - inicio_terco
+    terco_ativo = tempo_terco < TEMPO_TERCO
 
     tela.blit(cenario, (0, 0))
     if not atacando:
@@ -765,12 +818,18 @@ while rodando:
         escuro = int(ESCURIDAO * tempo_pulso / DURACAO_PULSO)
     else:
         escuro = ESCURIDAO
+    if terco_ativo:
+        voltando = max(0, tempo_terco - (TEMPO_TERCO - FADE_TERCO)) / FADE_TERCO
+        escuro = min(escuro, int(ESCURIDAO * voltando))
     tamanho = max(int(raio_desenho * 2 * ALCANCE_LUZ), 1)
     luz = pygame.transform.smoothscale(gradiente, (tamanho, tamanho))
     sombra.fill((0, 0, 0, escuro))
     canto = (int(jogador_cx) - tamanho // 2, int(jogador_cy) - tamanho // 2)
     sombra.blit(luz, canto, special_flags=pygame.BLEND_RGBA_MIN)
     tela.blit(sombra, (0, 0))
+    if terco_ativo:
+        brilho.fill((COR_TERCO[0], COR_TERCO[1], COR_TERCO[2], int(BRILHO_TERCO * (1 - tempo_terco / TEMPO_TERCO))))
+        tela.blit(brilho, (0, 0))
 
     if mulher_ativa:
         flutuar = math.sin(agora * FLUTUAR_VELOCIDADE) * FLUTUAR_ALTURA
@@ -780,6 +839,7 @@ while rodando:
     if agora - inicio_mordida < DURACAO_FLASH_MORDIDA:
         tela.fill(COR_MORDIDA)
     telas.desenhar_barra(tela, carga)
+    telas.desenhar_terco(tela, not terco_usado)
     if montado:
         telas.desenhar_dica(tela, "E para largar a bicicleta")
     elif distancia(jogador_cx, jogador_cy, bici_x, bici_y) < DIST_PEGAR:

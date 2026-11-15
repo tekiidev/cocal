@@ -114,10 +114,14 @@ Entrega: 1 de dezembro de 2026.
 - Dica na tela (`telas.desenhar_dica`): "E para pegar a bicicleta" só quando o E funciona, e "E para largar" enquanto está montado. Fica no topo (`DICA_Y`).
 - Luz suave: a sombra tem transparência por pixel (`SRCALPHA`). Um degradê redondo (`telas.criar_gradiente`, feito uma vez) é redimensionado ao tamanho da luz e carimbado na sombra com `BLEND_RGBA_MIN`. Totalmente clara até `NUCLEO_LUZ` do raio e escurece até `ALCANCE_LUZ` vezes o raio. Saiu o círculo com `set_colorkey` (`COR_BURACO`).
 - Sprites e sons provisórios: sprites/bicicleta.png, homem.png, homem_rosto.png; sons/rangido.wav, sons/grito_homem.wav.
+- Introdução: JOGAR no menu leva para a HISTORIA (texto letra por letra, `LETRAS_POR_SEGUNDO`, tremendo como lamparina) e depois para o AVISO (jogar de noite e de fone; aviso de sustos, sons altos e luzes piscando; explicação da Reza do terço) com o botão CONTINUAR. ENTER ou clique completa o texto e avança. Som de tensão (zumbido, sapos, grilos, batimento) nas duas telas. Os textos ficam em `TEXTO_HISTORIA`, `TEXTO_AVISO` e `TEXTO_TERCO` no config.py. ENTER no game over e na vitória recomeça direto, sem a introdução.
+- Tela de aviso com fundo de parede de taipa (barro com as varas aparecendo nos buracos) e beiral de palha (sprites/cabana.png, 200x150 esticado para 800x600). Texto com sombra (`telas.escrever`, `SOMBRA_TEXTO`) e botão de tábua (`COR_TABUA`).
+- Reza do terço: tecla Z, uma vez por partida (`terco_usado`). Clarão dourado que mostra a mata inteira por `TEMPO_TERCO` segundos (escuridão zero e volta aos poucos em `FADE_TERCO`), inclusive a cascavel escondida. Ícone do terço no canto: dourado disponível, cinza usado.
+- Sons provisórios: sons/tensao.wav, sons/terco.wav (trocar pela minha voz: "Valei-me, Nossa Senhora!").
 - Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
 - Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
-- A decidir: terço manual (tecla) ou automático.
+- Terço: decidido manual, tecla Z.
 
 ## Onde mudar o quê (para a defesa)
 
@@ -202,6 +206,12 @@ Entrega: 1 de dezembro de 2026.
 | Susto do homem | `DURACAO_SUSTO_HOMEM`, `TEMPO_SUBIDA`, `ZOOM_HOMEM`, `ANGULO_TORCAO`, `VELOCIDADE_TORCAO`, `TREMOR_HOMEM` | config.py |
 | Suavidade da borda da luz | `NUCLEO_LUZ` (maior = borda mais dura), `ALCANCE_LUZ` (maior = some mais longe) | config.py |
 | Posição da dica na tela | `DICA_Y` | config.py |
+| Textos da história e do aviso | `TEXTO_HISTORIA`, `TITULO_AVISO`, `TEXTO_AVISO`, `TEXTO_TERCO` | config.py |
+| Velocidade da digitação da história | `LETRAS_POR_SEGUNDO` | config.py |
+| Volume da música de tensão | `VOLUME_TENSAO` | config.py |
+| Tempo do clarão do terço | `TEMPO_TERCO`, `FADE_TERCO` | config.py |
+| Cor e força do dourado | `COR_TERCO`, `BRILHO_TERCO` | config.py |
+| Tecla do terço | `pygame.K_z` no `if` do KEYDOWN | main.py |
 | Onde fica a saída | letra `S` no `mapa` | main.py |
 | Tempo do amanhecer na vitória | `TEMPO_AMANHECER` (segundos) | config.py |
 | Cor do amanhecer | `COR_AMANHECER` | config.py |
