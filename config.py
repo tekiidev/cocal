@@ -222,17 +222,18 @@ TEXTO_HISTORIA = [
     "",
     "Eu era piá e tava mais meu pai no açude,",
     "quando uma caninana passou por mim.",
-    "Eu dei um pulo tão grande que fui parar na bera do açude",
+    "Eu dei um pulo tão grande que fui parar na bera do açude!",
     "",
     "Na estrada do cemitério, o povo de lá de vez em quando",
     "via um vulto de uma mulher de branco andando de noite.",
     "E se passasse de bicicleta e olhasse pra trás...",
     "a bicicleta pesava sem ninguém na garupa.",
     "No mato era cascavel e caninana pra dar bote",
-    "matava os cachorro, as vaca, até quem morava no meio do mato",
+    "matava os cachorro, as vaca, até quem morava no meio do mato.",
     "",
-    "De noite no Cocal do João Rufino, a gente escuta mais do que vê.",
-    "Ou vê coisa que num existe nessa Terra...",
+    "De noite, no Cocal do João Rufino, a gente escuta mais do que vê",
+    "ou às vezes vê coisa até demais. E reza se for à pé pro Bar da Oneide"
+    "passando pelo cemitério...",
 ]
 TITULO_AVISO = "Antes de entrar na mata"
 TEXTO_AVISO = [
