@@ -81,6 +81,7 @@ SUAVIZACAO = 0.1
 JOGANDO = 0
 SUSTO = 1
 GAME_OVER = 2
+MENU = 3
 
 DURACAO_SUSTO = 1.5
 DURACAO_FLASH = 0.05
@@ -92,6 +93,24 @@ COR_TEXTO = (200, 190, 160)
 TAMANHO_TEXTO = 48
 TAMANHO_TEXTO_PEQUENO = 28
 ESPACO_LINHAS = 60
+
+OPCOES_MENU = ["JOGAR", "SAIR"]
+OPCAO_JOGAR = 0
+OPCAO_SAIR = 1
+TOTAL_QUADROS_LOGO = 24
+MS_POR_QUADRO_LOGO = 110
+LOGO_Y = 60
+TEMPO_FADE_LOGO = 2.5
+TEMPO_OPCOES = 3.0
+OPCAO_Y = 420
+ESPACO_OPCOES = 70
+LARGURA_OPCAO = 260
+ALTURA_OPCAO = 50
+COR_OPCAO = (120, 150, 96)
+COR_OPCAO_SELECIONADA = (206, 154, 92)
+VOLUME_INTRO = 0.8
+VOLUME_NAVEGAR = 0.5
+VOLUME_CONFIRMAR = 0.9
 
 mapa = [
     "####################",
@@ -211,9 +230,44 @@ def desenhar_susto(tempo):
 def desenhar_game_over():
     tela.fill(COR_FUNDO)
     texto = fonte.render("A caninana te pegou.", True, COR_TEXTO)
-    dica = fonte_pequena.render("ENTER para tentar de novo, ESC para sair", True, COR_TEXTO)
+    dica = fonte_pequena.render("ENTER para tentar de novo, ESC para o menu", True, COR_TEXTO)
     desenhar_centro(texto, LARGURA // 2, ALTURA // 2)
     desenhar_centro(dica, LARGURA // 2, ALTURA // 2 + ESPACO_LINHAS)
+
+
+def opcao_sob_mouse(posicao):
+    for i in range(len(retangulos_opcoes)):
+        if retangulos_opcoes[i].collidepoint(posicao):
+            return i
+    return -1
+
+
+def desenhar_menu(tempo):
+    tela.fill(COR_FUNDO)
+    indice = int(tempo * 1000 / MS_POR_QUADRO_LOGO) % TOTAL_QUADROS_LOGO
+    logo = quadros_logo[indice]
+    logo.set_alpha(min(255, int(255 * tempo / TEMPO_FADE_LOGO)))
+    tela.blit(logo, (0, LOGO_Y))
+    if tempo >= TEMPO_OPCOES:
+        for i in range(len(OPCOES_MENU)):
+            texto = OPCOES_MENU[i]
+            cor = COR_OPCAO
+            if i == opcao:
+                texto = "> " + texto + " <"
+                cor = COR_OPCAO_SELECIONADA
+            imagem = fonte.render(texto, True, cor)
+            desenhar_centro(imagem, retangulos_opcoes[i].centerx, retangulos_opcoes[i].centery)
+
+
+def abrir_menu():
+    global estado_jogo, inicio_menu, opcao
+    estado_jogo = MENU
+    inicio_menu = pygame.time.get_ticks() / 1000
+    opcao = OPCAO_JOGAR
+    pygame.mixer.stop()
+    som_ambiente.play(loops=-1)
+    som_intro.play()
+    pygame.mouse.set_visible(True)
 
 
 def reiniciar():
@@ -246,6 +300,7 @@ def reiniciar():
     som_ambiente.play(loops=-1)
     som_chiado.set_volume(0)
     som_chiado.play(loops=-1)
+    pygame.mouse.set_visible(False)
 
 
 pygame.init()
@@ -269,6 +324,14 @@ img_corpo_amarelo = pygame.image.load("sprites/caninana_corpo_amarelo.png").conv
 img_corpo_preto = pygame.image.load("sprites/caninana_corpo_preto.png").convert_alpha()
 img_enrolada = pygame.image.load("sprites/caninana_enrolada.png").convert_alpha()
 
+quadros_logo = []
+for i in range(TOTAL_QUADROS_LOGO):
+    quadros_logo.append(pygame.image.load("sprites/logo/logo_" + str(i).zfill(2) + ".png").convert_alpha())
+
+retangulos_opcoes = []
+for i in range(len(OPCOES_MENU)):
+    retangulos_opcoes.append(pygame.Rect(LARGURA // 2 - LARGURA_OPCAO // 2, OPCAO_Y + i * ESPACO_OPCOES, LARGURA_OPCAO, ALTURA_OPCAO))
+
 casa_x = CANINANA_COLUNA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
 casa_y = CANINANA_LINHA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
 
@@ -282,23 +345,53 @@ som_ambiente = carregar_som("musica/ambiente.wav", VOLUME_AMBIENTE)
 som_chiado = carregar_som("sons/chiado.wav", VOLUME_CHIADO)
 som_bote = carregar_som("sons/bote.wav", VOLUME_BOTE)
 som_susto = carregar_som("sons/susto.wav", VOLUME_SUSTO)
+som_intro = carregar_som("sons/intro.wav", VOLUME_INTRO)
+som_navegar = carregar_som("sons/navegar.wav", VOLUME_NAVEGAR)
+som_confirmar = carregar_som("sons/confirmar.wav", VOLUME_CONFIRMAR)
 
 reiniciar()
 inicio_susto = 0
 dir_x = 0
 dir_y = 0
+abrir_menu()
 
 rodando = True
 while rodando:
     agora = pygame.time.get_ticks() / 1000
     tempo_pulso = agora - ultimo_pulso
 
+    escolheu = False
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             rodando = False
+        elif estado_jogo == MENU:
+            tempo_menu = agora - inicio_menu
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_ESCAPE:
+                    rodando = False
+                elif tempo_menu < TEMPO_OPCOES:
+                    inicio_menu = agora - TEMPO_OPCOES
+                elif evento.key == pygame.K_UP or evento.key == pygame.K_w:
+                    opcao = (opcao - 1) % len(OPCOES_MENU)
+                    som_navegar.play()
+                elif evento.key == pygame.K_DOWN or evento.key == pygame.K_s:
+                    opcao = (opcao + 1) % len(OPCOES_MENU)
+                    som_navegar.play()
+                elif evento.key == pygame.K_RETURN or evento.key == pygame.K_SPACE:
+                    escolheu = True
+            elif evento.type == pygame.MOUSEMOTION and tempo_menu >= TEMPO_OPCOES:
+                sob_mouse = opcao_sob_mouse(evento.pos)
+                if sob_mouse != -1 and sob_mouse != opcao:
+                    opcao = sob_mouse
+                    som_navegar.play()
+            elif evento.type == pygame.MOUSEBUTTONDOWN and tempo_menu >= TEMPO_OPCOES:
+                sob_mouse = opcao_sob_mouse(evento.pos)
+                if sob_mouse != -1:
+                    opcao = sob_mouse
+                    escolheu = True
         elif evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_ESCAPE:
-                rodando = False
+                abrir_menu()
             elif evento.key == pygame.K_RETURN and estado_jogo == GAME_OVER:
                 reiniciar()
             elif evento.key == pygame.K_SPACE and estado_jogo == JOGANDO:
@@ -308,8 +401,17 @@ while rodando:
                     avisou_recarga = False
                     som_pulso.play()
 
+    if escolheu:
+        if opcao == OPCAO_JOGAR:
+            reiniciar()
+            som_confirmar.play()
+        else:
+            rodando = False
+
     if estado_jogo != JOGANDO:
-        if estado_jogo == SUSTO:
+        if estado_jogo == MENU:
+            desenhar_menu(agora - inicio_menu)
+        elif estado_jogo == SUSTO:
             desenhar_susto(agora - inicio_susto)
             if agora - inicio_susto > DURACAO_SUSTO:
                 estado_jogo = GAME_OVER

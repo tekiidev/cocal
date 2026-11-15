@@ -21,4 +21,14 @@ Todos os direitos reservados.
 
 ## Controles
 
-Em desenvolvimento.
+Menu:
+- Setas ou W e S (ou o mouse): escolher
+- ENTER, ESPAÇO ou clique: confirmar
+- ESC: sair
+
+Jogo:
+- Setas ou WASD: andar
+- SHIFT: andar devagar
+- ESPAÇO: pulso
+- ENTER: tentar de novo (na tela de game over)
+- ESC: voltar ao menu

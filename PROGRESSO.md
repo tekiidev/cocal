@@ -12,7 +12,8 @@ Entrega: 1 de dezembro de 2026.
 - Marco da Fase 2 atingido: a mata escura com luz e pulso.
 - Fase 3 com código pronto (feita de uma vez, a pedido): caninana com estados, bote com corpo, luz que diminui, susto, game over e reinício (ENTER).
 - Marco da Fase 3 atingido: dá para perder e recomeçar.
-- Tela cheia ligada (TELA_CHEIA). ESC fecha o jogo.
+- Tela inicial pronta (feita a pedido): logo animada, som de abertura e menu JOGAR e SAIR (teclado ou mouse).
+- Tela cheia ligada (TELA_CHEIA). No jogo, ESC volta ao menu. No menu, ESC fecha.
 - Perguntas de verificação pendentes: Fases 1, 2 e 3 (estudar).
 - Próxima: Fase 4, etapa 4.1 (armadilha com mini-missão).
 
@@ -41,7 +42,8 @@ Entrega: 1 de dezembro de 2026.
 ### Fase 4: Jogo completo (26 a 28/nov)
 - [ ] 4.1 Armadilha com mini-missão
 - [ ] 4.2 Saída, vitória e estados do jogo
-- [ ] 4.3 Tela inicial, galo à meia-noite e presságios básicos
+- [x] 4.3a Tela inicial: logo animada, som de abertura e menu JOGAR e SAIR
+- [ ] 4.3b Galo à meia-noite e presságios básicos
 
 ### Fase 5: Polimento e defesa (29 e 30/nov)
 - [ ] 5.1 Equilibrar constantes e testar com outra pessoa
@@ -71,7 +73,10 @@ Entrega: 1 de dezembro de 2026.
 - Recuo: a cabeça volta pelas posições guardadas em `corpo` (pop do início).
 - Reinício: função `reiniciar()` com `global`, chamada no começo e no ENTER.
 - Sons provisórios da caninana: sons/chiado.wav, sons/bote.wav, sons/susto.wav.
-- Controles: setas ou WASD, SHIFT devagar, ESPAÇO pulso, ENTER recomeça, ESC sai. Velocidade negativa = esquerda ou cima.
+- Tela inicial: novo estado `MENU`. A logo são 24 quadros PNG em `sprites/logo/` (marrom e verde musgo), trocados pelo tempo: `indice = tempo * 1000 / MS_POR_QUADRO_LOGO`, com `% TOTAL_QUADROS_LOGO` para voltar ao início. Ela aparece aos poucos (`set_alpha`) e as opções surgem em `TEMPO_OPCOES`. Qualquer tecla pula a abertura.
+- Função `abrir_menu()` (com `global`) para a abertura. `reiniciar()` é chamada ao escolher JOGAR. O mouse só aparece no menu.
+- Sons provisórios do menu: sons/intro.wav (ronco, vento e sino), sons/navegar.wav, sons/confirmar.wav.
+- Controles: setas ou WASD, SHIFT devagar, ESPAÇO pulso, ENTER recomeça, ESC volta ao menu (no menu, ESC sai). Velocidade negativa = esquerda ou cima.
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
 - A decidir: terço manual (tecla) ou automático.
 
@@ -114,5 +119,12 @@ Entrega: 1 de dezembro de 2026.
 | Suavidade da luz | `SUAVIZACAO` (maior = muda mais rápido) | main.py |
 | Duração e zoom do susto | `DURACAO_SUSTO`, `ZOOM_INICIAL`, `ZOOM_FINAL`, `TREMOR_SUSTO` | main.py |
 | Texto do game over | `desenhar_game_over()` | main.py |
+| Velocidade da animação da logo | `MS_POR_QUADRO_LOGO` (menor = mais rápida) | main.py |
+| Tempo da logo aparecendo | `TEMPO_FADE_LOGO` (segundos) | main.py |
+| Quando as opções do menu aparecem | `TEMPO_OPCOES` (segundos) | main.py |
+| Posição da logo e das opções | `LOGO_Y`, `OPCAO_Y`, `ESPACO_OPCOES` | main.py |
+| Textos do menu | `OPCOES_MENU` | main.py |
+| Cores do menu | `COR_OPCAO`, `COR_OPCAO_SELECIONADA` | main.py |
+| Volume da abertura e dos cliques do menu | `VOLUME_INTRO`, `VOLUME_NAVEGAR`, `VOLUME_CONFIRMAR` | main.py |
 
 Esta tabela cresce a cada etapa.
