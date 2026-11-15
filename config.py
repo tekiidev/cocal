@@ -226,7 +226,7 @@ TEXTO_HISTORIA = [
     "",
     "Na estrada do cemitério, o povo de lá de vez em quando",
     "via um vulto de uma mulher de branco andando de noite.",
-    "E se passasse de bicicleta e olhasse pra trás...",
+    "E se passasse de bicicleta e olhasse pra trás... pesava a garupa",
     "",
     "De noite, no Cocal do João Rufino, a gente escuta mais do que vê",
     "ou às vezes vê coisa até demais.",
