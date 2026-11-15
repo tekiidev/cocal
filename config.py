@@ -217,32 +217,33 @@ HISTORIA = 9
 AVISO = 10
 
 TEXTO_HISTORIA = [
-    "Marminino, esse jogo saiu das histórias do povoado",
-    "João Rufino, lá em Trizidela do Vale, Maranhão.",
+    "Esse jogo saiu das histórias do povoado",
+    "João Rufino, em Trizidela do Vale - MA.",
     "",
-    "Eu era pirralho, tava mais meu pai no açude, quando",
-    "uma caninana passou bem no meio das minhas pernas.",
-    "Égua, dei um pulo que fui parar na beira d'água!",
+    "Eu era piá e tava mais meu pai no açude, quando",
+    "uma caninana passou por mim.",
+    "Eu dei um pulo tão grande que fui parar na bera do açude",
     "",
-    "Na estrada do cemitério, o povo jura que já viu",
-    "uma mulher de vestido branco andando de noite.",
-    "E tem alma que monta na garupa da bicicleta",
-    "e vai pesando, pesando, até num andar mais.",
-    "No mato é cascavel pra todo lado. E vaca parida,",
-    "rapaz, se tu chegar perto ela vem pra cima.",
+    "Na estrada do cemitério, o povo de lá de vez em quando via",
+    "um vulto de uma mulher de branco andando de noite.",
+    "E se passasse de bicicleta e olhasse pra trás...",
+    "a bicicleta pesava sem ninguém na garupa.",
+    "No mato era cascavel e caninana pra dar bote",
+    "matava os cachorro, as vaca, até quem morava no meio do mato",
     "",
-    "Visse? De noite no Cocal, a gente escuta mais do que vê.",
+    "De noite no Cocal do João Rufino, a gente escuta mais do que vê."
+    "Ou vê coisa que num existe nessa Terra...",
 ]
 TITULO_AVISO = "Antes de entrar na mata"
 TEXTO_AVISO = [
-    "Joga de noite, com a luz apagada e de fone, visse?",
-    "Tem susto, barulho alto e luz piscando.",
+    "Joga de noite, com a luz apagada e de fone, viu mofi?",
+    "E não vai se cagar, froux@ kkkkkkkkkkkk",
 ]
 TEXTO_TERCO = [
     "Reza do terço (tecla Z)",
-    "Um clarão dourado mostra a mata todinha num piscar de olho,",
-    "com tudo que tá escondido nela.",
-    "Mas só dá pra rezar uma vez por noite.",
+    "O clarão de Nossa Senhora da Bicicretinha Sem Freio mostra a mata pra não",
+    "encontrar essas coisa do djabo.",
+    "Mas só dá pra rezar uma vez por noite...",
 ]
 TEXTO_BOTAO = "CONTINUAR"
 

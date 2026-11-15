@@ -131,7 +131,8 @@ Entrega: 1 de dezembro de 2026.
   - `mapas.py` tem uma lista por coisa que muda de fase: `MAPAS`, `DECORACOES`, `INICIOS`, `CASCAVEIS`, `BICICLETAS`, `VACAS`, `ROTAS_CANINANA`, `ROTAS_MULHER`, `CONSTRUCOES` (bar, carro, casa), `LUZES` (pontos que clareiam o escuro), `PAREDOES`, `NOMES_FASES`. A posição `[0]` é a fase 1. Lista vazia = a fase não tem.
   - `carregar_fase(numero)` pega tudo da fase, guarda em variáveis (`mapa`, `decoracao`, `raio_base`, `recarga`...) e desenha o `cenario`. `novo_jogo()` começa da fase 1 e zera o terço. `passar_de_fase()` carrega a próxima.
   - Chegar no `S` das fases 1 e 2 mostra a tela de passagem (estado `PASSAGEM`, 4 s ou ENTER). Na fase 3 é vitória, com o tempo total desde o começo do jogo.
-  - Game over recomeça a fase atual. O terço vale uma vez no jogo todo ("uma vez por noite"): só volta num jogo novo pelo menu.
+  - Game over recomeça a fase atual.
+  - Terço: uma reza por fase. Volta a ficar disponível ao entrar numa fase nova (`terco_usado = False` dentro de `carregar_fase`). Morrer não devolve a reza gasta naquela fase.
   - Nome da fase aparece no topo nos primeiros `TEMPO_NOME_FASE` segundos.
   - Nas fases sem cascavel, `dist_cascavel = LONGE`, então ela nunca acorda. Vaca e bicicleta só existem quando `tem_vaca` e `tem_bicicleta`.
   - Teste: as 3 fases foram vencidas por um jogador automático cuidadoso, e o jogo inteiro (fase 1 → 2 → 3 → vitória, com uma morte no meio) funcionou.

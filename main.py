@@ -203,7 +203,9 @@ def carregar_fase(numero):
     global fase, mapa, decoracao, construcoes, luzes, paredao, cenario
     global inicio, rota_caninana, rota_mulher, raio_base, recarga, velocidade_caninana, intervalo_min, intervalo_max
     global tem_cascavel, casa_x, casa_y, tem_bicicleta, origem_x, origem_y, tem_vaca, vaca_casa_x, vaca_casa_y
+    global terco_usado
     fase = numero
+    terco_usado = False
     mapa = mapas.MAPAS[fase]
     decoracao = mapas.DECORACOES[fase]
     construcoes = mapas.CONSTRUCOES[fase]
@@ -236,8 +238,7 @@ def carregar_fase(numero):
 
 
 def novo_jogo():
-    global terco_usado, inicio_jogo
-    terco_usado = False
+    global inicio_jogo
     inicio_jogo = pygame.time.get_ticks() / 1000
     carregar_fase(0)
     reiniciar()
