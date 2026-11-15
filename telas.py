@@ -25,15 +25,15 @@ def desenhar_barra(tela, carga):
     pygame.draw.rect(tela, cor, (BARRA_X, BARRA_Y, int(BARRA_LARGURA * carga), BARRA_ALTURA))
 
 
-def desenhar_susto(tela, tempo, img_cabeca):
+def desenhar_susto(tela, tempo, img, duracao, zoom_inicial, zoom_final, tremor):
     if tempo < DURACAO_FLASH:
         tela.fill(COR_FLASH)
         return
     tela.fill(COR_FUNDO)
-    zoom = ZOOM_INICIAL + (ZOOM_FINAL - ZOOM_INICIAL) * tempo / DURACAO_SUSTO
-    imagem = pygame.transform.scale_by(img_cabeca, zoom)
-    tremor_x = random.randint(-TREMOR_SUSTO, TREMOR_SUSTO)
-    tremor_y = random.randint(-TREMOR_SUSTO, TREMOR_SUSTO)
+    zoom = zoom_inicial + (zoom_final - zoom_inicial) * min(tempo / duracao, 1)
+    imagem = pygame.transform.scale_by(img, zoom)
+    tremor_x = random.randint(-tremor, tremor)
+    tremor_y = random.randint(-tremor, tremor)
     desenhar_centro(tela, imagem, LARGURA // 2 + tremor_x, ALTURA // 2 + tremor_y)
 
 

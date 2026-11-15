@@ -98,6 +98,9 @@ Entrega: 1 de dezembro de 2026.
 - `VELOCIDADE_SEGURA` subiu para 2.2: andando devagar na diagonal a velocidade é √(1,5² + 1,5²) ≈ 2,12, e com 2 isso contava como barulho.
 - Teste: com cuidado (esperar a caninana passar antes de cruzar a linha 10 e usar SHIFT perto das cobras) dá para vencer; correndo, ela pega.
 - Sons e sprites provisórios: sons/chocalho.wav, sons/mordida.wav, sprites/cascavel_*.png (cores trocadas dos sprites da caninana).
+- Rosto: quando o vulto chega no meio da travessia (passa pelo caipira), aparece uma cara em tela cheia por `DURACAO_ROSTO` s, com flash, zoom, tremor e grito. Não mata: depois volta ao jogo (estado `ROSTO`). `CHANCE_ROSTO` (0 a 1) controla se toda passagem do vulto mostra a cara. A `desenhar_susto` do `telas.py` agora recebe imagem, duração, zoom e tremor, e serve para o susto das cobras e para o rosto.
+- Pendente: aviso de sustos, luzes piscando e fones na tela inicial (previsto no CLAUDE.md).
+- Sprite e som provisórios: sprites/cara.png, sons/grito.wav.
 - Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
 - Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
@@ -163,6 +166,9 @@ Entrega: 1 de dezembro de 2026.
 | Tamanho do corpo da caninana | `TAMANHO_RASTRO`, `ESPACO_RASTRO` | config.py |
 | Veneno (luz e duração) | `RAIO_VENENO`, `TEMPO_VENENO` | config.py |
 | Piscada vermelha da mordida | `DURACAO_FLASH_MORDIDA`, `COR_MORDIDA` | config.py |
+| Chance do vulto mostrar a cara | `CHANCE_ROSTO` (1.0 = sempre) | config.py |
+| Duração, zoom e tremor da cara | `DURACAO_ROSTO`, `ZOOM_ROSTO_INICIAL`, `ZOOM_ROSTO_FINAL`, `TREMOR_ROSTO` | config.py |
+| Volume do grito | `VOLUME_GRITO` | config.py |
 | Onde fica a saída | letra `S` no `mapa` | main.py |
 | Tempo do amanhecer na vitória | `TEMPO_AMANHECER` (segundos) | config.py |
 | Cor do amanhecer | `COR_AMANHECER` | config.py |

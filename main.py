@@ -143,8 +143,9 @@ def agendar_assombro(agora):
 
 
 def comecar_assombro(agora):
-    global assombro_atual, inicio_assombro, lado_assombro
+    global assombro_atual, inicio_assombro, lado_assombro, rosto_mostrado
     assombro_atual = sortear_assombro()
+    rosto_mostrado = False
     inicio_assombro = agora
     lado_assombro = random.choice([-1, 1])
     if assombro_atual == VULTO:
@@ -272,6 +273,10 @@ som_lamparina = carregar_som("sons/lamparina.wav", VOLUME_LAMPARINA)
 som_sussurro = carregar_som("sons/sussurro.wav", VOLUME_SUSSURRO)
 som_chiado = carregar_som("sons/chiado.wav", VOLUME_CHIADO)
 som_mordida = carregar_som("sons/mordida.wav", VOLUME_MORDIDA)
+som_grito = carregar_som("sons/grito.wav", VOLUME_GRITO)
+img_rosto = pygame.image.load("sprites/cara.png").convert_alpha()
+rosto_mostrado = False
+inicio_rosto = 0
 
 img_susto = img_caninana_cabeca
 inicio_assombro = 0
@@ -354,7 +359,7 @@ while rodando:
         if estado_jogo == MENU:
             telas.desenhar_menu(tela, agora - inicio_menu, quadros_logo, opcao, retangulos_opcoes)
         elif estado_jogo == SUSTO:
-            telas.desenhar_susto(tela, agora - inicio_susto, img_susto)
+            telas.desenhar_susto(tela, agora - inicio_susto, img_susto, DURACAO_SUSTO, ZOOM_INICIAL, ZOOM_FINAL, TREMOR_SUSTO)
             if agora - inicio_susto > DURACAO_SUSTO:
                 estado_jogo = GAME_OVER
         elif estado_jogo == PRESO:
@@ -365,6 +370,10 @@ while rodando:
                 mensagem_fim = "Você não conseguiu se soltar do laço."
                 estado_jogo = GAME_OVER
                 pygame.mixer.stop()
+        elif estado_jogo == ROSTO:
+            telas.desenhar_susto(tela, agora - inicio_rosto, img_rosto, DURACAO_ROSTO, ZOOM_ROSTO_INICIAL, ZOOM_ROSTO_FINAL, TREMOR_ROSTO)
+            if agora - inicio_rosto > DURACAO_ROSTO:
+                estado_jogo = JOGANDO
         elif estado_jogo == VITORIA:
             telas.desenhar_vitoria(tela, agora - inicio_vitoria, tempo_travessia)
         else:
@@ -464,6 +473,16 @@ while rodando:
     tempo_assombro = agora - inicio_assombro
     if assombro_atual != NENHUM and tempo_assombro > DURACOES_ASSOMBRO[assombro_atual]:
         assombro_atual = NENHUM
+
+    if assombro_atual == VULTO and not rosto_mostrado and tempo_assombro >= DURACOES_ASSOMBRO[VULTO] / 2:
+        rosto_mostrado = True
+        if random.random() < CHANCE_ROSTO:
+            estado_jogo = ROSTO
+            inicio_rosto = agora
+            assombro_atual = NENHUM
+            vel_x = 0
+            vel_y = 0
+            som_grito.play()
 
     if estado_cascavel == ESCONDIDA:
         if dist_cascavel < DIST_ATENTA:
