@@ -82,6 +82,17 @@ JOGANDO = 0
 SUSTO = 1
 GAME_OVER = 2
 MENU = 3
+PRESO = 4
+
+FORCA_PARA_SOLTAR = 12
+TEMPO_ARMADILHA = 6
+MISSAO_Y = 360
+MISSAO_LARGURA = 300
+MISSAO_ALTURA = 16
+ESPACO_BARRAS = 30
+COR_FORCA = (206, 154, 92)
+COR_TEMPO = (150, 50, 40)
+VOLUME_ARMADILHA = 0.9
 
 DURACAO_SUSTO = 1.5
 DURACAO_FLASH = 0.05
@@ -229,10 +240,26 @@ def desenhar_susto(tempo):
 
 def desenhar_game_over():
     tela.fill(COR_FUNDO)
-    texto = fonte.render("A caninana te pegou.", True, COR_TEXTO)
+    texto = fonte.render(mensagem_fim, True, COR_TEXTO)
     dica = fonte_pequena.render("ENTER para tentar de novo, ESC para o menu", True, COR_TEXTO)
     desenhar_centro(texto, LARGURA // 2, ALTURA // 2)
     desenhar_centro(dica, LARGURA // 2, ALTURA // 2 + ESPACO_LINHAS)
+
+
+def desenhar_barra_missao(barra_y, proporcao, cor):
+    barra_x = LARGURA // 2 - MISSAO_LARGURA // 2
+    pygame.draw.rect(tela, COR_BARRA_FUNDO, (barra_x, barra_y, MISSAO_LARGURA, MISSAO_ALTURA))
+    pygame.draw.rect(tela, cor, (barra_x, barra_y, int(MISSAO_LARGURA * proporcao), MISSAO_ALTURA))
+
+
+def desenhar_preso(tempo):
+    tela.fill(COR_FUNDO)
+    titulo = fonte.render("Você pisou num laço!", True, COR_TEXTO)
+    dica = fonte_pequena.render("Alterne ESQUERDA e DIREITA para soltar o pé", True, COR_TEXTO)
+    desenhar_centro(titulo, LARGURA // 2, ALTURA // 2 - ESPACO_LINHAS)
+    desenhar_centro(dica, LARGURA // 2, ALTURA // 2)
+    desenhar_barra_missao(MISSAO_Y, min(forca / FORCA_PARA_SOLTAR, 1), COR_FORCA)
+    desenhar_barra_missao(MISSAO_Y + ESPACO_BARRAS, max(1 - tempo / TEMPO_ARMADILHA, 0), COR_TEMPO)
 
 
 def opcao_sob_mouse(posicao):
@@ -274,6 +301,7 @@ def reiniciar():
     global x, y, vel_x, vel_y, direcao, quadro, contador
     global ultimo_pulso, avisou_recarga, raio_luz, estado_jogo
     global estado_caninana, cabeca_x, cabeca_y, corpo, inicio_atenta, angulo
+    global armadilhas_usadas, mensagem_fim
 
     margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
     x = COLUNA_INICIAL * TAMANHO_BLOCO + margem
@@ -295,6 +323,9 @@ def reiniciar():
     corpo = []
     inicio_atenta = 0
     angulo = 0
+
+    armadilhas_usadas = []
+    mensagem_fim = ""
 
     pygame.mixer.stop()
     som_ambiente.play(loops=-1)
@@ -348,11 +379,15 @@ som_susto = carregar_som("sons/susto.wav", VOLUME_SUSTO)
 som_intro = carregar_som("sons/intro.wav", VOLUME_INTRO)
 som_navegar = carregar_som("sons/navegar.wav", VOLUME_NAVEGAR)
 som_confirmar = carregar_som("sons/confirmar.wav", VOLUME_CONFIRMAR)
+som_armadilha = carregar_som("sons/armadilha.wav", VOLUME_ARMADILHA)
 
 reiniciar()
 inicio_susto = 0
 dir_x = 0
 dir_y = 0
+inicio_preso = 0
+forca = 0
+ultima_puxada = -1
 abrir_menu()
 
 rodando = True
@@ -400,6 +435,16 @@ while rodando:
                     tempo_pulso = 0
                     avisou_recarga = False
                     som_pulso.play()
+            elif estado_jogo == PRESO:
+                puxada = -1
+                if evento.key == pygame.K_LEFT or evento.key == pygame.K_a:
+                    puxada = ESQUERDA
+                elif evento.key == pygame.K_RIGHT or evento.key == pygame.K_d:
+                    puxada = DIREITA
+                if puxada != -1 and puxada != ultima_puxada:
+                    forca += 1
+                    ultima_puxada = puxada
+                    som_passo.play()
 
     if escolheu:
         if opcao == OPCAO_JOGAR:
@@ -415,6 +460,14 @@ while rodando:
             desenhar_susto(agora - inicio_susto)
             if agora - inicio_susto > DURACAO_SUSTO:
                 estado_jogo = GAME_OVER
+        elif estado_jogo == PRESO:
+            desenhar_preso(agora - inicio_preso)
+            if forca >= FORCA_PARA_SOLTAR:
+                estado_jogo = JOGANDO
+            elif agora - inicio_preso > TEMPO_ARMADILHA:
+                mensagem_fim = "Você não conseguiu se soltar do laço."
+                estado_jogo = GAME_OVER
+                pygame.mixer.stop()
         else:
             desenhar_game_over()
         pygame.display.flip()
@@ -478,6 +531,19 @@ while rodando:
     dist = distancia(jogador_cx, jogador_cy, cabeca_x, cabeca_y)
     velocidade = distancia(vel_x, vel_y, 0, 0)
 
+    linha_jogador = int(jogador_cy // TAMANHO_BLOCO)
+    coluna_jogador = int(jogador_cx // TAMANHO_BLOCO)
+    bloco_atual = [linha_jogador, coluna_jogador]
+    if mapa[linha_jogador][coluna_jogador] == "T" and bloco_atual not in armadilhas_usadas:
+        armadilhas_usadas.append(bloco_atual)
+        estado_jogo = PRESO
+        inicio_preso = agora
+        forca = 0
+        ultima_puxada = -1
+        vel_x = 0
+        vel_y = 0
+        som_armadilha.play()
+
     if estado_caninana == ESCONDIDA:
         if dist < DIST_ATENTA:
             estado_caninana = ATENTA
@@ -498,6 +564,7 @@ while rodando:
         if distancia(jogador_cx, jogador_cy, cabeca_x, cabeca_y) < DIST_MORDIDA:
             estado_jogo = SUSTO
             inicio_susto = agora
+            mensagem_fim = "A caninana te pegou."
             pygame.mixer.stop()
             som_susto.play()
         elif len(corpo) * VELOCIDADE_BOTE >= ALCANCE_BOTE:

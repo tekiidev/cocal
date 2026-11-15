@@ -15,7 +15,8 @@ Entrega: 1 de dezembro de 2026.
 - Tela inicial pronta (feita a pedido): logo animada, som de abertura e menu JOGAR e SAIR (teclado ou mouse).
 - Tela cheia ligada (TELA_CHEIA). No jogo, ESC volta ao menu. No menu, ESC fecha.
 - Perguntas de verificação pendentes: Fases 1, 2 e 3 (estudar).
-- Próxima: Fase 4, etapa 4.1 (armadilha com mini-missão).
+- Etapa 4.1 pronta: laço de caçador no `T` com mini-missão (alternar ESQUERDA e DIREITA).
+- Próxima: Fase 4, etapa 4.2 (saída, vitória e estados do jogo).
 
 ## Fases e etapas
 
@@ -40,7 +41,7 @@ Entrega: 1 de dezembro de 2026.
 - [x] 3.4 Susto, game over e reinício
 
 ### Fase 4: Jogo completo (26 a 28/nov)
-- [ ] 4.1 Armadilha com mini-missão
+- [x] 4.1 Armadilha com mini-missão
 - [ ] 4.2 Saída, vitória e estados do jogo
 - [x] 4.3a Tela inicial: logo animada, som de abertura e menu JOGAR e SAIR
 - [ ] 4.3b Galo à meia-noite e presságios básicos
@@ -77,6 +78,9 @@ Entrega: 1 de dezembro de 2026.
 - Função `abrir_menu()` (com `global`) para a abertura. `reiniciar()` é chamada ao escolher JOGAR. O mouse só aparece no menu.
 - Sons provisórios do menu: sons/intro.wav (ronco, vento e sino), sons/navegar.wav, sons/confirmar.wav.
 - Controles: setas ou WASD, SHIFT devagar, ESPAÇO pulso, ENTER recomeça, ESC volta ao menu (no menu, ESC sai). Velocidade negativa = esquerda ou cima.
+- Armadilha: laço de caçador. Novo estado `PRESO`. Cada puxada alternada (ESQUERDA depois DIREITA) soma 1 em `forca`; repetir a mesma tecla não conta. Solta com `FORCA_PARA_SOLTAR` puxadas antes de `TEMPO_ARMADILHA` segundos, senão é game over. Cada laço só prende uma vez (lista `armadilhas_usadas`, zerada no `reiniciar()`).
+- Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
+- Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
 - A decidir: terço manual (tecla) ou automático.
 
@@ -125,6 +129,10 @@ Entrega: 1 de dezembro de 2026.
 | Posição da logo e das opções | `LOGO_Y`, `OPCAO_Y`, `ESPACO_OPCOES` | main.py |
 | Textos do menu | `OPCOES_MENU` | main.py |
 | Cores do menu | `COR_OPCAO`, `COR_OPCAO_SELECIONADA` | main.py |
+| Puxadas para soltar do laço | `FORCA_PARA_SOLTAR` | main.py |
+| Tempo para soltar do laço | `TEMPO_ARMADILHA` (segundos) | main.py |
+| Onde ficam as armadilhas | letra `T` no `mapa` | main.py |
+| Barras da mini-missão | `MISSAO_Y`, `MISSAO_LARGURA`, `MISSAO_ALTURA`, `ESPACO_BARRAS`, `COR_FORCA`, `COR_TEMPO` | main.py |
 | Volume da abertura e dos cliques do menu | `VOLUME_INTRO`, `VOLUME_NAVEGAR`, `VOLUME_CONFIRMAR` | main.py |
 
 Esta tabela cresce a cada etapa.

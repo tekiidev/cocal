@@ -30,5 +30,6 @@ Jogo:
 - Setas ou WASD: andar
 - SHIFT: andar devagar
 - ESPAÇO: pulso
+- ESQUERDA e DIREITA alternadas: soltar o pé do laço
 - ENTER: tentar de novo (na tela de game over)
 - ESC: voltar ao menu
