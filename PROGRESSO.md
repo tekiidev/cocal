@@ -72,7 +72,7 @@ Entrega: 1 de dezembro de 2026.
 - Objetivo: atravessar a mata do Cocal escura, passando por todos os obstáculos e monstros, até a saída.
 - Mapa: 20 colunas x 15 linhas, blocos de 40 px, cada linha é um texto (`mapa[linha][coluna]`). Início em linha 1, coluna 1. Saída no canto de baixo à direita.
 - Colisão: testa os 4 cantos do jogador, eixo x e eixo y separados (assim ele desliza encostado na parede).
-- Luz: superfície preta com um círculo de cor COR_BURACO, que vira transparente com set_colorkey.
+- Luz: começou com um círculo recortado (`set_colorkey`); hoje é suave (ver "Luz suave").
 - Pulso: ESPAÇO, recarga de 25 s, revela o mapa e escurece de volta em 1,5 s (alpha da sombra sobe de 0 até ESCURIDAO). Tempo medido em segundos com get_ticks() / 1000.
 - Sons provisórios gerados por código (sons/passo.wav, sons/pulso.wav, sons/recarga.wav, musica/ambiente.wav). Trocar pelas gravações, com o mesmo nome.
 - Caninana ataca o que faz barulho: só dá o bote se o jogador estiver rápido (acima de VELOCIDADE_SEGURA). SHIFT anda devagar. Sem isso o jogo era impossível (ela fica no único caminho para a saída).
@@ -109,6 +109,11 @@ Entrega: 1 de dezembro de 2026.
 - Ambientação: segunda matriz `decoracao` (15 x 20, igual ao mapa), separada do `mapa`. Letras: `P` palmeira de babaçu, `M` mata, `B` bananeira (na parte das cobras, linhas 9 a 13), `R` arroz alto (nas trilhas em volta dos pontos do vulto), `.` nada. Palmeira, mata e bananeira ficam no mato; o arroz fica em cima da trilha e é desenhado depois do jogador (ele some na palha) e balança com `math.sin`. Cada planta tem a imagem normal e a espelhada (`carregar_com_espelho`), escolhida por `(linha + coluna) % 2`, para não parecerem todas iguais.
 - Desempenho: o cenário (chão, mato, lápides, cruz e plantas) é desenhado uma vez só na imagem `cenario`, antes do loop, e a cada quadro só é colado com `tela.blit(cenario, (0, 0))`. Caiu de 18 ms para 4 ms por quadro. O arroz continua sendo desenhado a cada quadro porque balança.
 - Sprites provisórios: sprites/palmeira.png, mata.png, bananeira.png, arroz.png.
+- Bicicleta (história do João Rufino): fica na linha 7, coluna 3. Tecla E pega (a menos de `DIST_PEGAR`) e larga. Na bicicleta a velocidade máxima vai de `VELOCIDADE_BICICLETA` (8) até `VELOCIDADE_PESADA` (1) conforme o `peso`, que é a distância até onde ela foi pega dividida por `DIST_PESO_MAX` (0 a 1). Longe ela fica pesada; voltando, fica leve. Com peso acima de `PESO_FANTASMA` toca um rangido e aparece um homem transparente na garupa. Largar de volta no lugar de origem (a menos de `DIST_DEVOLVER`) depois de ela ter ficado pesada (`peso_maximo`) dispara o susto do homem (estado `HOMEM`, uma vez por partida, não mata). Largar em outro lugar não assusta. Na bicicleta o jogador é rápido e faz barulho (as cobras ouvem).
+- Susto do homem (`telas.desenhar_susto_homem`): flash; a cara sobe por baixo da tela (`TEMPO_SUBIDA`) e fica torcendo a cabeça (`pygame.transform.rotate` com `math.sin`), diferente do zoom dos outros sustos.
+- Dica na tela (`telas.desenhar_dica`): "E para pegar a bicicleta" só quando o E funciona, e "E para largar" enquanto está montado. Fica no topo (`DICA_Y`).
+- Luz suave: a sombra tem transparência por pixel (`SRCALPHA`). Um degradê redondo (`telas.criar_gradiente`, feito uma vez) é redimensionado ao tamanho da luz e carimbado na sombra com `BLEND_RGBA_MIN`. Totalmente clara até `NUCLEO_LUZ` do raio e escurece até `ALCANCE_LUZ` vezes o raio. Saiu o círculo com `set_colorkey` (`COR_BURACO`).
+- Sprites e sons provisórios: sprites/bicicleta.png, homem.png, homem_rosto.png; sons/rangido.wav, sons/grito_homem.wav.
 - Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
 - Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).
@@ -188,6 +193,15 @@ Entrega: 1 de dezembro de 2026.
 | Volumes da mulher | `VOLUME_LAMENTO`, `VOLUME_GRITO_MULHER` | config.py |
 | Onde ficam palmeiras, matas, bananeiras e arroz | letras da matriz `decoracao` | main.py |
 | Quanto o arroz balança | `BALANCO_ARROZ`, `VELOCIDADE_BALANCO` | config.py |
+| Onde fica a bicicleta | `BICICLETA_LINHA`, `BICICLETA_COLUNA` | config.py |
+| Velocidade da bicicleta leve e pesada | `VELOCIDADE_BICICLETA`, `VELOCIDADE_PESADA` | config.py |
+| Distância até ficar pesada de vez | `DIST_PESO_MAX` | config.py |
+| Quando o homem aparece na garupa | `PESO_FANTASMA`, `TRANSPARENCIA_FANTASMA`, `DESVIO_FANTASMA` | config.py |
+| Distância para pegar e para devolver | `DIST_PEGAR`, `DIST_DEVOLVER` | config.py |
+| Tecla da bicicleta | `pygame.K_e` no `if` do KEYDOWN | main.py |
+| Susto do homem | `DURACAO_SUSTO_HOMEM`, `TEMPO_SUBIDA`, `ZOOM_HOMEM`, `ANGULO_TORCAO`, `VELOCIDADE_TORCAO`, `TREMOR_HOMEM` | config.py |
+| Suavidade da borda da luz | `NUCLEO_LUZ` (maior = borda mais dura), `ALCANCE_LUZ` (maior = some mais longe) | config.py |
+| Posição da dica na tela | `DICA_Y` | config.py |
 | Onde fica a saída | letra `S` no `mapa` | main.py |
 | Tempo do amanhecer na vitória | `TEMPO_AMANHECER` (segundos) | config.py |
 | Cor do amanhecer | `COR_AMANHECER` | config.py |

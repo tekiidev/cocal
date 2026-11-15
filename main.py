@@ -199,6 +199,27 @@ def agendar_assombro(agora):
         assombro_agendado = agora + random.uniform(ATRASO_MIN, ATRASO_MAX)
 
 
+def usar_bicicleta(agora):
+    global montado, bici_x, bici_y, homem_ativo, estado_jogo, inicio_susto_homem, vel_x, vel_y
+    centro_x = x + TAMANHO_JOGADOR // 2
+    centro_y = y + TAMANHO_JOGADOR // 2
+    if montado:
+        montado = False
+        bici_x = centro_x
+        bici_y = centro_y
+        perto_de_casa = distancia(bici_x, bici_y, origem_x, origem_y) < DIST_DEVOLVER
+        if perto_de_casa and peso_maximo >= PESO_FANTASMA and homem_ativo:
+            homem_ativo = False
+            estado_jogo = HOMEM
+            inicio_susto_homem = agora
+            vel_x = 0
+            vel_y = 0
+            som_rangido.set_volume(0)
+            som_grito_homem.play()
+    elif distancia(centro_x, centro_y, bici_x, bici_y) < DIST_PEGAR:
+        montado = True
+
+
 def comecar_assombro(agora):
     global assombro_atual, inicio_assombro, lado_assombro, rosto_mostrado
     assombro_atual = sortear_assombro()
@@ -228,6 +249,7 @@ def reiniciar():
     global caninana_x, caninana_y, estado_caninana, ponto_rota, fim_perseguicao, rastro, angulo_caninana
     global fim_veneno, inicio_mordida
     global mulher_x, mulher_y, ponto_mulher, mulher_ativa
+    global bici_x, bici_y, montado, peso, peso_maximo, homem_ativo
 
     margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
     x = COLUNA_INICIAL * TAMANHO_BLOCO + margem
@@ -263,6 +285,13 @@ def reiniciar():
     ponto_mulher = 1
     mulher_ativa = True
 
+    bici_x = origem_x
+    bici_y = origem_y
+    montado = False
+    peso = 0
+    peso_maximo = 0
+    homem_ativo = True
+
     armadilhas_usadas = []
     mensagem_fim = ""
     inicio_partida = pygame.time.get_ticks() / 1000
@@ -282,6 +311,8 @@ def reiniciar():
     som_chiado.play(loops=-1)
     som_lamento.set_volume(0)
     som_lamento.play(loops=-1)
+    som_rangido.set_volume(0)
+    som_rangido.play(loops=-1)
     pygame.mouse.set_visible(False)
 
 
@@ -316,9 +347,10 @@ retangulos_opcoes = telas.criar_retangulos_opcoes()
 
 casa_x = CASCAVEL_COLUNA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
 casa_y = CASCAVEL_LINHA * TAMANHO_BLOCO + TAMANHO_BLOCO // 2
+origem_x, origem_y = centro_do_bloco([BICICLETA_LINHA, BICICLETA_COLUNA])
 
-sombra = pygame.Surface((LARGURA, ALTURA))
-sombra.set_colorkey(COR_BURACO)
+sombra = pygame.Surface((LARGURA, ALTURA), pygame.SRCALPHA)
+gradiente = telas.criar_gradiente()
 
 som_passo = carregar_som("sons/passo.wav", VOLUME_PASSO)
 som_pulso = carregar_som("sons/pulso.wav", VOLUME_PULSO)
@@ -352,6 +384,13 @@ img_mulher_mao = pygame.image.load("sprites/mulher_mao.png").convert_alpha()
 som_lamento = carregar_som("sons/lamento.wav", VOLUME_LAMENTO)
 som_grito_mulher = carregar_som("sons/grito_mulher.wav", VOLUME_GRITO_MULHER)
 inicio_susto_mulher = 0
+img_bicicleta = pygame.image.load("sprites/bicicleta.png").convert_alpha()
+img_bicicleta_em_pe = pygame.transform.rotate(img_bicicleta, 90)
+img_homem = pygame.image.load("sprites/homem.png").convert_alpha()
+img_homem_rosto = pygame.image.load("sprites/homem_rosto.png").convert_alpha()
+som_rangido = carregar_som("sons/rangido.wav", VOLUME_RANGIDO)
+som_grito_homem = carregar_som("sons/grito_homem.wav", VOLUME_GRITO_HOMEM)
+inicio_susto_homem = 0
 
 cenario = pygame.Surface((LARGURA, ALTURA))
 desenhar_mapa(cenario)
@@ -411,6 +450,8 @@ while rodando:
                 abrir_menu()
             elif evento.key == pygame.K_RETURN and (estado_jogo == GAME_OVER or estado_jogo == VITORIA):
                 reiniciar()
+            elif evento.key == pygame.K_e and estado_jogo == JOGANDO:
+                usar_bicicleta(agora)
             elif evento.key == pygame.K_SPACE and estado_jogo == JOGANDO:
                 if tempo_pulso >= RECARGA_PULSO:
                     ultimo_pulso = agora
@@ -450,6 +491,10 @@ while rodando:
                 mensagem_fim = "Você não conseguiu se soltar do laço."
                 estado_jogo = GAME_OVER
                 pygame.mixer.stop()
+        elif estado_jogo == HOMEM:
+            telas.desenhar_susto_homem(tela, agora - inicio_susto_homem, img_homem_rosto)
+            if agora - inicio_susto_homem > DURACAO_SUSTO_HOMEM:
+                estado_jogo = JOGANDO
         elif estado_jogo == MULHER:
             telas.desenhar_susto_mulher(tela, agora - inicio_susto_mulher, img_mulher_rosto, img_mulher_mao)
             if agora - inicio_susto_mulher > DURACAO_SUSTO_MULHER:
@@ -482,8 +527,13 @@ while rodando:
         vel_y += ACELERACAO
 
     limite = VELOCIDADE_MAX
+    if montado:
+        longe = distancia(x + TAMANHO_JOGADOR // 2, y + TAMANHO_JOGADOR // 2, origem_x, origem_y)
+        peso = min(longe / DIST_PESO_MAX, 1)
+        peso_maximo = max(peso_maximo, peso)
+        limite = VELOCIDADE_BICICLETA + (VELOCIDADE_PESADA - VELOCIDADE_BICICLETA) * peso
     if teclas[pygame.K_LSHIFT] or teclas[pygame.K_RSHIFT]:
-        limite = VELOCIDADE_DEVAGAR
+        limite = min(limite, VELOCIDADE_DEVAGAR)
     vel_x = limitar(vel_x * ATRITO, limite)
     vel_y = limitar(vel_y * ATRITO, limite)
 
@@ -511,11 +561,11 @@ while rodando:
                 direcao = CIMA
 
         contador += 1
-        if contador >= QUADROS_POR_PASSO:
+        if contador >= QUADROS_POR_PASSO and not montado:
             contador = 0
             quadro = 1 - quadro
             som_passo.play()
-    else:
+    if not andando or montado:
         quadro = 0
 
     jogador_cx = x + TAMANHO_JOGADOR // 2
@@ -650,6 +700,10 @@ while rodando:
         som_susto.play()
 
     som_chiado.set_volume(VOLUME_CHIADO * max(0, 1 - dist_caninana / DIST_SOM_CANINANA))
+    if montado:
+        som_rangido.set_volume(VOLUME_RANGIDO * peso)
+    else:
+        som_rangido.set_volume(0)
 
     perigo = min(dist_cascavel, dist_caninana)
     if mulher_ativa:
@@ -682,7 +736,20 @@ while rodando:
     if not atacando:
         desenhar_cascavel()
     desenhar_caninana()
+    if montado:
+        if direcao == CIMA or direcao == BAIXO:
+            telas.desenhar_centro(tela, img_bicicleta_em_pe, jogador_cx, jogador_cy)
+        else:
+            telas.desenhar_centro(tela, img_bicicleta, jogador_cx, jogador_cy)
+    else:
+        telas.desenhar_centro(tela, img_bicicleta, bici_x, bici_y)
     tela.blit(imagens_jogador[direcao][quadro], (int(x), int(y)))
+    if montado and peso > PESO_FANTASMA:
+        visivel = (peso - PESO_FANTASMA) / (1 - PESO_FANTASMA)
+        img_homem.set_alpha(int(TRANSPARENCIA_FANTASMA * visivel))
+        atras_x = [0, 0, DESVIO_FANTASMA, -DESVIO_FANTASMA][direcao]
+        atras_y = [-DESVIO_FANTASMA, DESVIO_FANTASMA, 0, 0][direcao]
+        telas.desenhar_centro(tela, img_homem, jogador_cx + atras_x, jogador_cy + atras_y)
     desenhar_arroz(agora)
 
     if assombro_atual == VULTO:
@@ -695,12 +762,14 @@ while rodando:
         raio_desenho = raio_luz * random.uniform(FATOR_LUZ_MIN, FATOR_LUZ_MAX)
 
     if tempo_pulso < DURACAO_PULSO:
-        sombra.set_alpha(int(ESCURIDAO * tempo_pulso / DURACAO_PULSO))
+        escuro = int(ESCURIDAO * tempo_pulso / DURACAO_PULSO)
     else:
-        sombra.set_alpha(ESCURIDAO)
-    centro = (int(jogador_cx), int(jogador_cy))
-    sombra.fill(COR_SOMBRA)
-    pygame.draw.circle(sombra, COR_BURACO, centro, int(raio_desenho))
+        escuro = ESCURIDAO
+    tamanho = max(int(raio_desenho * 2 * ALCANCE_LUZ), 1)
+    luz = pygame.transform.smoothscale(gradiente, (tamanho, tamanho))
+    sombra.fill((0, 0, 0, escuro))
+    canto = (int(jogador_cx) - tamanho // 2, int(jogador_cy) - tamanho // 2)
+    sombra.blit(luz, canto, special_flags=pygame.BLEND_RGBA_MIN)
     tela.blit(sombra, (0, 0))
 
     if mulher_ativa:
@@ -711,6 +780,10 @@ while rodando:
     if agora - inicio_mordida < DURACAO_FLASH_MORDIDA:
         tela.fill(COR_MORDIDA)
     telas.desenhar_barra(tela, carga)
+    if montado:
+        telas.desenhar_dica(tela, "E para largar a bicicleta")
+    elif distancia(jogador_cx, jogador_cy, bici_x, bici_y) < DIST_PEGAR:
+        telas.desenhar_dica(tela, "E para pegar a bicicleta")
     pygame.display.flip()
     relogio.tick(FPS)
 

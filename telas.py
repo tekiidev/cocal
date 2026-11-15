@@ -1,3 +1,4 @@
+import math
 import random
 import pygame
 from config import *
@@ -14,6 +15,20 @@ def carregar_fontes():
 
 def desenhar_centro(tela, imagem, cx, cy):
     tela.blit(imagem, (int(cx) - imagem.get_width() // 2, int(cy) - imagem.get_height() // 2))
+
+
+def criar_gradiente():
+    gradiente = pygame.Surface((TAMANHO_GRADIENTE * 2, TAMANHO_GRADIENTE * 2), pygame.SRCALPHA)
+    gradiente.fill((0, 0, 0, 255))
+    for raio in range(TAMANHO_GRADIENTE, 0, -1):
+        parte = raio / TAMANHO_GRADIENTE
+        if parte <= NUCLEO_LUZ:
+            escuro = 0
+        else:
+            subida = (parte - NUCLEO_LUZ) / (1 - NUCLEO_LUZ)
+            escuro = int(255 * subida * subida * (3 - 2 * subida))
+        pygame.draw.circle(gradiente, (0, 0, 0, escuro), (TAMANHO_GRADIENTE, TAMANHO_GRADIENTE), raio)
+    return gradiente
 
 
 def desenhar_barra(tela, carga):
@@ -158,3 +173,22 @@ def desenhar_susto_mulher(tela, tempo, img_rosto, img_mao):
         else:
             espelhada = pygame.transform.flip(mao, True, False)
             desenhar_centro(tela, espelhada, mao_x - mao.get_width() * 0.35, mao_y)
+
+
+def desenhar_dica(tela, texto):
+    imagem = fonte_pequena.render(texto, True, COR_TEXTO)
+    desenhar_centro(tela, imagem, LARGURA // 2, DICA_Y)
+
+
+def desenhar_susto_homem(tela, tempo, img_rosto):
+    if tempo < DURACAO_FLASH:
+        tela.fill(COR_FLASH)
+        return
+    tela.fill(COR_FUNDO)
+    angulo = math.sin(tempo * VELOCIDADE_TORCAO) * ANGULO_TORCAO + random.randint(-3, 3)
+    rosto = pygame.transform.rotate(pygame.transform.scale_by(img_rosto, ZOOM_HOMEM), angulo)
+    subida = min(tempo / TEMPO_SUBIDA, 1)
+    inicio_y = ALTURA + rosto.get_height() // 2
+    cy = inicio_y + (ALTURA // 2 - inicio_y) * subida
+    cx = LARGURA // 2 + random.randint(-TREMOR_HOMEM, TREMOR_HOMEM)
+    desenhar_centro(tela, rosto, cx, cy + random.randint(-TREMOR_HOMEM, TREMOR_HOMEM))

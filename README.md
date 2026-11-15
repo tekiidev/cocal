@@ -32,6 +32,7 @@ Jogo:
 - Setas ou WASD: andar
 - SHIFT: andar devagar
 - ESPAÇO: pulso
+- E: pegar ou largar a bicicleta
 - ESQUERDA e DIREITA alternadas: soltar o pé do laço
 - ENTER: jogar de novo (no game over e na vitória)
 - ESC: voltar ao menu
