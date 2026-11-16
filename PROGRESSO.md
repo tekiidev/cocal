@@ -132,12 +132,14 @@ Entrega: 1 de dezembro de 2026.
   - `carregar_fase(numero)` pega tudo da fase, guarda em variáveis (`mapa`, `decoracao`, `raio_base`, `recarga`...) e desenha o `cenario`. `novo_jogo()` começa da fase 1 e zera o terço. `passar_de_fase()` carrega a próxima.
   - Chegar no `S` das fases 1 e 2 mostra a tela de passagem (estado `PASSAGEM`, 4 s ou ENTER). Na fase 3 é vitória, com o tempo total desde o começo do jogo.
   - Game over recomeça a fase atual.
-  - Terço: uma reza por tentativa. Volta ao começar o jogo, ao passar de fase e ao recomeçar a fase depois de morrer (`terco_usado = False` dentro de `reiniciar`).
+  - Terço: uma reza para o jogo todo (as 3 fases). Só volta num jogo novo pelo menu (`terco_usado = False` dentro de `novo_jogo`). Passar de fase ou morrer não devolve.
   - Nome da fase aparece no topo nos primeiros `TEMPO_NOME_FASE` segundos.
   - Nas fases sem cascavel, `dist_cascavel = LONGE`, então ela nunca acorda. Vaca e bicicleta só existem quando `tem_vaca` e `tem_bicicleta`.
   - Teste: as 3 fases foram vencidas por um jogador automático cuidadoso, e o jogo inteiro (fase 1 → 2 → 3 → vitória, com uma morte no meio) funcionou.
 - Texto da história com jeito de interior (marminino, égua, visse). Clarão do terço mais rápido (`TEMPO_TERCO` 1.2 s).
 - Sprites e sons provisórios: sprites/bar.png, carro.png, casa.png, estrada.png; sons/paredao.wav, sons/passagem.wav.
+- Luzes seguras: dentro do raio de um ponto de `LUZES` (variável `seguro`), nada pega o jogador: a cascavel não dá bote nem morde, a caninana não encosta e para de perseguir, a vaca não chifra e a mulher não assusta. Aparece a dica "Na luz, nada te pega". Fase 1 não tem luz; fase 2 a frente do bar; fase 3 a porta da primeira fazenda (depois do curral) e a frente da segunda (antes da cascavel). A luz da janela da fazenda 1 saiu de [5, 4] para [4, 1] para não deixar um bloco seguro dentro do curral.
+- Tirado o LED colorido do paredão (ficava esquisito). O som do paredão continua.
 - Game over com mensagem variável (`mensagem_fim`): caninana ou laço.
 - Som provisório: sons/armadilha.wav (estalo de madeira e corda).
 - A decidir: nome definitivo da habilidade (pulso, eco das almas ou chamado das almas).

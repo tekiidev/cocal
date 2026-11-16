@@ -236,7 +236,8 @@ def carregar_fase(numero):
 
 
 def novo_jogo():
-    global inicio_jogo
+    global inicio_jogo, terco_usado
+    terco_usado = False
     inicio_jogo = pygame.time.get_ticks() / 1000
     carregar_fase(0)
     reiniciar()
@@ -323,7 +324,7 @@ def reiniciar():
     global fim_veneno, inicio_mordida
     global mulher_x, mulher_y, ponto_mulher, mulher_ativa
     global bici_x, bici_y, montado, peso, peso_maximo, homem_ativo
-    global inicio_terco, terco_usado
+    global inicio_terco
     global vaca_x, vaca_y, estado_vaca, inicio_vaca, angulo_vaca, proximo_ei
 
     margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
@@ -376,7 +377,6 @@ def reiniciar():
     inicio_vaca = 0
     angulo_vaca = 0
     proximo_ei = pygame.time.get_ticks() / 1000 + random.uniform(EI_MIN, EI_MAX)
-    terco_usado = False
     inicio_terco = -TEMPO_TERCO
 
     armadilhas_usadas = []
@@ -706,6 +706,12 @@ while rodando:
 
     jogador_cx = x + TAMANHO_JOGADOR // 2
     jogador_cy = y + TAMANHO_JOGADOR // 2
+
+    seguro = False
+    for luz_linha, luz_coluna, luz_raio in luzes:
+        luz_x, luz_y = centro_do_bloco([luz_linha, luz_coluna])
+        if distancia(jogador_cx, jogador_cy, luz_x, luz_y) < luz_raio:
+            seguro = True
     if tem_cascavel:
         dist_cascavel = distancia(jogador_cx, jogador_cy, cascavel_x, cascavel_y)
     else:
@@ -769,7 +775,7 @@ while rodando:
     elif estado_cascavel == ATENTA:
         if dist_cascavel > DIST_ATENTA:
             estado_cascavel = ESCONDIDA
-        elif dist_cascavel < DIST_BOTE and velocidade > VELOCIDADE_SEGURA and agora - inicio_atenta > TEMPO_AVISO:
+        elif dist_cascavel < DIST_BOTE and velocidade > VELOCIDADE_SEGURA and agora - inicio_atenta > TEMPO_AVISO and not seguro:
             estado_cascavel = BOTE
             dir_x = (jogador_cx - cascavel_x) / dist_cascavel
             dir_y = (jogador_cy - cascavel_y) / dist_cascavel
@@ -779,7 +785,7 @@ while rodando:
         corpo_cascavel.insert(0, (cascavel_x, cascavel_y))
         cascavel_x += dir_x * VELOCIDADE_BOTE
         cascavel_y += dir_y * VELOCIDADE_BOTE
-        if distancia(jogador_cx, jogador_cy, cascavel_x, cascavel_y) < DIST_MORDIDA:
+        if distancia(jogador_cx, jogador_cy, cascavel_x, cascavel_y) < DIST_MORDIDA and not seguro:
             if agora < fim_veneno:
                 estado_jogo = SUSTO
                 inicio_susto = agora
@@ -806,12 +812,12 @@ while rodando:
         som_chocalho.set_volume(0)
 
     dist_caninana = distancia(jogador_cx, jogador_cy, caninana_x, caninana_y)
-    if velocidade > VELOCIDADE_SEGURA and dist_caninana < DIST_OUVIR:
+    if velocidade > VELOCIDADE_SEGURA and dist_caninana < DIST_OUVIR and not seguro:
         if estado_caninana == PATRULHA:
             som_bote.play()
         estado_caninana = PERSEGUINDO
         fim_perseguicao = agora + TEMPO_PERSEGUICAO
-    elif estado_caninana == PERSEGUINDO and agora > fim_perseguicao:
+    elif estado_caninana == PERSEGUINDO and (agora > fim_perseguicao or seguro):
         estado_caninana = PATRULHA
 
     if estado_caninana == PERSEGUINDO:
@@ -835,7 +841,7 @@ while rodando:
     if len(rastro) > TAMANHO_RASTRO * ESPACO_RASTRO:
         rastro.pop()
 
-    if dist_caninana < DIST_TOQUE:
+    if dist_caninana < DIST_TOQUE and not seguro:
         estado_jogo = SUSTO
         inicio_susto = agora
         img_susto = img_caninana_cabeca
@@ -877,7 +883,7 @@ while rodando:
         dist_vaca = distancia(jogador_cx, jogador_cy, vaca_x, vaca_y)
         if estado_vaca == BRAVA:
             perigo = min(perigo, dist_vaca)
-            if dist_vaca < DIST_CHIFRE:
+            if dist_vaca < DIST_CHIFRE and not seguro:
                 estado_jogo = SUSTO
                 inicio_susto = agora
                 img_susto = img_vaca_rosto
@@ -901,7 +907,7 @@ while rodando:
         dist_mulher = distancia(jogador_cx, jogador_cy, mulher_x, mulher_y)
         perigo = min(perigo, dist_mulher)
         som_lamento.set_volume(VOLUME_LAMENTO * max(0, 1 - dist_mulher / DIST_SOM_MULHER))
-        if dist_mulher < DIST_MULHER:
+        if dist_mulher < DIST_MULHER and not seguro:
             mulher_ativa = False
             estado_jogo = MULHER
             inicio_susto_mulher = agora
@@ -970,10 +976,6 @@ while rodando:
         mancha = pygame.transform.smoothscale(gradiente, (tamanho, tamanho))
         sombra.blit(mancha, (luz_x - tamanho // 2, luz_y - tamanho // 2), special_flags=pygame.BLEND_RGBA_MIN)
     tela.blit(sombra, (0, 0))
-    if len(paredao) > 0:
-        som_x, som_y = centro_do_bloco(paredao)
-        cor = CORES_PAREDAO[int(agora * PISCADAS_POR_SEGUNDO) % len(CORES_PAREDAO)]
-        telas.desenhar_luz_colorida(tela, som_x, som_y, cor)
     if terco_ativo:
         brilho.fill((COR_TERCO[0], COR_TERCO[1], COR_TERCO[2], int(BRILHO_TERCO * (1 - tempo_terco / TEMPO_TERCO))))
         tela.blit(brilho, (0, 0))
@@ -997,6 +999,8 @@ while rodando:
     telas.desenhar_terco(tela, not terco_usado)
     if agora - inicio_partida < TEMPO_NOME_FASE:
         telas.desenhar_dica(tela, "Fase " + str(fase + 1) + ": " + mapas.NOMES_FASES[fase])
+    elif seguro:
+        telas.desenhar_dica(tela, "Na luz, nada te pega")
     elif montado:
         telas.desenhar_dica(tela, "E para largar a bicicleta")
     elif tem_bicicleta and distancia(jogador_cx, jogador_cy, bici_x, bici_y) < DIST_PEGAR:
