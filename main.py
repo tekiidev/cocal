@@ -203,9 +203,7 @@ def carregar_fase(numero):
     global fase, mapa, decoracao, construcoes, luzes, paredao, cenario
     global inicio, rota_caninana, rota_mulher, raio_base, recarga, velocidade_caninana, intervalo_min, intervalo_max
     global tem_cascavel, casa_x, casa_y, tem_bicicleta, origem_x, origem_y, tem_vaca, vaca_casa_x, vaca_casa_y
-    global terco_usado
     fase = numero
-    terco_usado = False
     mapa = mapas.MAPAS[fase]
     decoracao = mapas.DECORACOES[fase]
     construcoes = mapas.CONSTRUCOES[fase]
@@ -325,7 +323,7 @@ def reiniciar():
     global fim_veneno, inicio_mordida
     global mulher_x, mulher_y, ponto_mulher, mulher_ativa
     global bici_x, bici_y, montado, peso, peso_maximo, homem_ativo
-    global inicio_terco
+    global inicio_terco, terco_usado
     global vaca_x, vaca_y, estado_vaca, inicio_vaca, angulo_vaca, proximo_ei
 
     margem = (TAMANHO_BLOCO - TAMANHO_JOGADOR) // 2
@@ -378,6 +376,7 @@ def reiniciar():
     inicio_vaca = 0
     angulo_vaca = 0
     proximo_ei = pygame.time.get_ticks() / 1000 + random.uniform(EI_MIN, EI_MAX)
+    terco_usado = False
     inicio_terco = -TEMPO_TERCO
 
     armadilhas_usadas = []
